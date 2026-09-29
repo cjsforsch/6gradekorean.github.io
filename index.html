@@ -8,6 +8,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- QRCode.js Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- PeerJS Library for GitHub Pages P2P Multiplayer -->
+    <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
     <!-- Google Font: Jua & Noto Sans KR -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -73,7 +75,7 @@
         .hp-bar-fill {
             transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.4s;
         }
-        /* Custom Scrollbar for Lobby */
+        /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-radius: 10px; }
         ::-webkit-scrollbar-thumb { background: rgba(99, 102, 241, 0.5); border-radius: 10px; }
@@ -124,7 +126,7 @@
             </p>
 
             <!-- Mode Selector Cards -->
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto mb-6">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto mb-2">
                 <!-- 1P Mode -->
                 <button onclick="game.startBattle('1p')" class="group bg-gradient-to-br from-blue-700 to-indigo-800 hover:from-blue-600 hover:to-indigo-700 p-5 rounded-2xl border-2 border-blue-400/30 shadow-lg text-left transition transform hover:-translate-y-1 relative overflow-hidden">
                     <div class="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition"></div>
@@ -157,10 +159,6 @@
                     <h3 class="text-lg font-jua text-yellow-300 mb-1 relative z-10">4인 QR 멀티 대결</h3>
                     <p class="text-xs text-emerald-100 relative z-10">스마트폰으로 접속해 다같이 서바이벌!</p>
                 </button>
-            </div>
-            
-            <div id="loadingAuth" class="text-xs text-yellow-300 font-bold mb-2 hidden animate-pulse">
-                서버 접속 중... 잠시만 기다려주세요.
             </div>
         </section>
 
@@ -216,7 +214,7 @@
             <p id="lobbyInstruction" class="text-xs sm:text-sm text-indigo-200 mb-6">다른 참가자를 기다리고 있습니다...</p>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center max-w-2xl mx-auto mb-6">
-                <!-- QR Code Box (Only visible to host or if layout permits) -->
+                <!-- QR Code Box -->
                 <div class="bg-white/10 p-4 rounded-2xl border border-white/20 flex flex-col items-center justify-center backdrop-blur-sm">
                     <div class="bg-white p-2 rounded-xl mb-3 shadow-inner">
                         <div id="qrcode" class="w-32 h-32 sm:w-40 sm:h-40 flex items-center justify-center text-slate-400 text-xs">QR 생성중</div>
@@ -374,7 +372,7 @@
                     </div>
                 </div>
 
-                <!-- Award Badge Card (Shown for local winner or individual performance) -->
+                <!-- Award Badge Card -->
                 <div id="awardCard" class="bg-gradient-to-r from-amber-500/20 to-yellow-500/20 p-4 rounded-2xl border border-yellow-500/30 max-w-md mx-auto mb-8 flex items-center gap-4 text-left shadow-lg backdrop-blur-sm">
                     <div class="text-4xl filter drop-shadow" id="badgeIcon">🎖️</div>
                     <div>
@@ -399,65 +397,79 @@
 
     <!-- FOOTER -->
     <footer class="w-full text-center py-4 text-[11px] text-indigo-400/60 border-t border-indigo-900/50 z-10 relative">
-        초등 6학년 국어 교육과정 표준 맞춤법 기준 • 1~4인 서바이벌 대결 게임
+        <p>초등학교 6학년 국어 맞춤법 서바이벌 대결 게임</p>
     </footer>
-
-    <!-- Firebase SDK Imports -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, updateDoc, onSnapshot, deleteField } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        // Firebase Setup using platform variables or fallbacks
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'spelling-battle-6th';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' 
-            ? JSON.parse(__firebase_config) 
-            : {
-                apiKey: "dummy-key",
-                authDomain: "dummy.firebaseapp.com",
-                projectId: "dummy-project"
-            };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
-
-        // Authenticate User
-        async function initAuth() {
-            try {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
-                }
-                document.getElementById('loadingAuth').classList.add('hidden');
-                console.log("Auth success, UID:", auth.currentUser.uid);
-            } catch (err) {
-                console.warn("Auth initialization notice:", err);
-                // Fallback for non-Firebase environments (local testing)
-                document.getElementById('loadingAuth').innerText = "오프라인 모드로 실행중입니다.";
-                setTimeout(() => document.getElementById('loadingAuth').classList.add('hidden'), 2000);
-            }
-        }
-        initAuth();
-
-        // Expose to global scope for the game logic script
-        window.firebaseCtx = { 
-            db, 
-            auth, 
-            appId, 
-            doc,
-            setDoc,
-            getDoc,
-            updateDoc,
-            onSnapshot,
-            deleteField
-        };
-    </script>
 
     <!-- GAME LOGIC SCRIPT -->
     <script>
-        // --- 1. QUIZ DATABASE ---
+        // --- 1. WEB AUDIO API SYNTHESIZER ---
+        let isSoundEnabled = true;
+        let audioCtx = null;
+
+        function getAudioContext() {
+            if (!audioCtx) {
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                if (AudioContextClass) audioCtx = new AudioContextClass();
+            }
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            return audioCtx;
+        }
+
+        function playSound(type) {
+            if (!isSoundEnabled) return;
+            try {
+                const ctx = getAudioContext();
+                if (!ctx) return;
+
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+
+                const now = ctx.currentTime;
+
+                if (type === 'select') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(600, now);
+                    osc.frequency.exponentialRampToValueAtTime(800, now + 0.08);
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+                    osc.start(now);
+                    osc.stop(now + 0.08);
+                } else if (type === 'correct') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(523.25, now); // C5
+                    osc.frequency.setValueAtTime(659.25, now + 0.1); // E5
+                    osc.frequency.setValueAtTime(783.99, now + 0.2); // G5
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+                    osc.start(now);
+                    osc.stop(now + 0.35);
+                } else if (type === 'wrong') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(180, now);
+                    osc.frequency.linearRampToValueAtTime(110, now + 0.25);
+                    gain.gain.setValueAtTime(0.25, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+                    osc.start(now);
+                    osc.stop(now + 0.25);
+                } else if (type === 'heal') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(400, now);
+                    osc.frequency.exponentialRampToValueAtTime(880, now + 0.2);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+                    osc.start(now);
+                    osc.stop(now + 0.25);
+                }
+            } catch (e) {
+                console.warn('Audio play error:', e);
+            }
+        }
+
+        // --- 2. QUIZ DATABASE ---
         const QUIZ_DATABASE = [
             { category: "혼동하기 쉬운 말", sentence: "선생님, 내일 학교 끝나고 다시 ( ____ )!", options: ["봬요", "뵈요"], answer: 0, explanation: "'봬요'는 '뵈어'가 줄어든 형태입니다. '뵈요'는 틀린 표기입니다.", tip: "'해요'를 넣어서 자연스러우면 '봬요'입니다. ('하요' X -> '해요' O -> '봬요')" },
             { category: "동사 맞춤법", sentence: "열심히 공부해서 문제를 모두 ( ____ )!", options: ["맞혔다", "맞췄다"], answer: 0, explanation: "정답을 적중시키는 것은 '맞히다'가 올바른 표현입니다.", tip: "'맞히다'는 정답/화살을 적중시킬 때, '맞추다'는 서로 비교하거나 조각을 합칠 때 씁니다." },
@@ -473,11 +485,11 @@
             { category: "혼동 어휘", sentence: "시간이 없으니 ( ____ ) 서둘러라.", options: ["어지간히", "어지간이"], answer: 0, explanation: "부사 파생 접미사 '-히'가 결합하여 '어지간히'가 됩니다.", tip: "발음이 [히]로 분명히 나면 '-히'로 적습니다." }
         ];
 
-        // --- 2. GAME STATE & CONSTANTS ---
+        // --- 3. GAME STATE & CONSTANTS ---
         const MAX_HP = 100;
         const TIME_LIMIT = 10; // seconds per turn
         const DAMAGE_AMT = 30;
-        const HEAL_AMT = 15; // 정답 맞힐 시 회복량
+        const HEAL_AMT = 15;
         
         let gameState = {
             mode: '', // '1p', '2p', '4p'
@@ -493,209 +505,237 @@
             // Multiplayer specifics
             roomCode: null,
             isHost: false,
-            myId: null, // Firebase UID or local ID
-            unsubscribeRoom: null,
-            multiplayerState: 'lobby', // lobby, playing, result, gameover
-            answers: {}, // map of uid -> selected option index
+            myId: null,
+            answers: {}, // map of id -> selected option index
         };
 
-        // --- STREAMING_CHUNK:Implementing Audio System... ---
-        // --- 3. AUDIO SYSTEM (Synthesizer) ---
-        let audioCtx = null;
-        let isSoundEnabled = true;
-
-        function initAudio() {
-            if (!audioCtx && window.AudioContext) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }
-        }
-
-        function playSound(type) {
-            if (!isSoundEnabled) return;
-            initAudio();
-            if (!audioCtx) return;
-
-            const osc = audioCtx.createOscillator();
-            const gainNode = audioCtx.createGain();
-            osc.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
-
-            const now = audioCtx.currentTime;
-            
-            switch (type) {
-                case 'select':
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(600, now);
-                    osc.frequency.exponentialRampToValueAtTime(800, now + 0.1);
-                    gainNode.gain.setValueAtTime(0.1, now);
-                    gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
-                    osc.start(now);
-                    osc.stop(now + 0.1);
-                    break;
-                case 'heal':
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(350, now);
-                    osc.frequency.exponentialRampToValueAtTime(700, now + 0.25);
-                    gainNode.gain.setValueAtTime(0.15, now);
-                    gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
-                    osc.start(now);
-                    osc.stop(now + 0.25);
-                    break;
-                case 'correct':
-                    osc.type = 'triangle';
-                    osc.frequency.setValueAtTime(440, now); // A4
-                    osc.frequency.setValueAtTime(554.37, now + 0.1); // C#5
-                    osc.frequency.setValueAtTime(659.25, now + 0.2); // E5
-                    gainNode.gain.setValueAtTime(0.2, now);
-                    gainNode.gain.linearRampToValueAtTime(0, now + 0.4);
-                    osc.start(now);
-                    osc.stop(now + 0.4);
-                    break;
-                case 'wrong':
-                    osc.type = 'sawtooth';
-                    osc.frequency.setValueAtTime(300, now);
-                    osc.frequency.exponentialRampToValueAtTime(150, now + 0.3);
-                    gainNode.gain.setValueAtTime(0.2, now);
-                    gainNode.gain.linearRampToValueAtTime(0, now + 0.3);
-                    osc.start(now);
-                    osc.stop(now + 0.3);
-                    break;
-                case 'attack':
-                    osc.type = 'square';
-                    osc.frequency.setValueAtTime(100, now);
-                    osc.frequency.exponentialRampToValueAtTime(20, now + 0.2);
-                    gainNode.gain.setValueAtTime(0.3, now);
-                    gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
-                    osc.start(now);
-                    osc.stop(now + 0.2);
-                    break;
-            }
-        }
-
-        // --- STREAMING_CHUNK:Implementing Visual Effects (Canvas)... ---
-        // --- 4. VISUAL EFFECTS (Canvas) ---
-        function drawSlashEffect() {
-            const canvas = document.getElementById('attackCanvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = canvas.offsetWidth;
-            canvas.height = canvas.offsetHeight;
-            
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            const centerX = canvas.width / 2;
-            const centerY = canvas.height / 2;
-            const size = Math.min(canvas.width, canvas.height) * 0.8;
-            
-            let frame = 0;
-            const maxFrames = 15;
-            
-            function animate() {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                if (frame >= maxFrames) return;
-                
-                const progress = frame / maxFrames;
-                const alpha = 1 - progress;
-                const length = size * progress;
-                
-                ctx.beginPath();
-                ctx.moveTo(centerX - length/2, centerY - length/2);
-                ctx.lineTo(centerX + length/2, centerY + length/2);
-                ctx.strokeStyle = `rgba(239, 68, 68, ${alpha})`; // Red slash
-                ctx.lineWidth = 15 + (10 * (1-progress));
-                ctx.lineCap = 'round';
-                ctx.stroke();
-
-                // Secondary slash
-                if(frame > 2) {
-                    ctx.beginPath();
-                    ctx.moveTo(centerX + length/3, centerY - length/3);
-                    ctx.lineTo(centerX - length/3, centerY + length/3);
-                    ctx.strokeStyle = `rgba(245, 158, 11, ${alpha*0.8})`; // Orange slash
-                    ctx.lineWidth = 10 + (5 * (1-progress));
-                    ctx.stroke();
-                }
-                
-                frame++;
-                requestAnimationFrame(animate);
-            }
-            playSound('attack');
-            animate();
-            
-            // Screen shake
-            const quizCard = document.getElementById('quizCard');
-            quizCard.classList.remove('animate-shake');
-            void quizCard.offsetWidth; // trigger reflow
-            quizCard.classList.add('animate-shake');
-        }
-
-        // --- STREAMING_CHUNK:Implementing Core UI Functions... ---
-        // --- 5. CORE UI & UTILS ---
-        function showToast(msg) {
-            const toast = document.getElementById('toast');
-            document.getElementById('toastMessage').innerText = msg;
-            toast.classList.remove('opacity-0');
-            toast.classList.add('opacity-100');
-            setTimeout(() => {
-                toast.classList.remove('opacity-100');
-                toast.classList.add('opacity-0');
-            }, 3000);
-        }
-
+        // --- 4. UTILITY HELPER FUNCTIONS ---
         function shuffle(array) {
-            let currentIndex = array.length,  randomIndex;
-            while (currentIndex != 0) {
-                randomIndex = Math.floor(Math.random() * currentIndex);
-                currentIndex--;
-                [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+            const arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
             }
-            return array;
+            return arr;
         }
 
         function hideAllScreens() {
             ['startScreen', 'roomSetupScreen', 'lobbyScreen', 'battleScreen', 'resultScreen'].forEach(id => {
-                document.getElementById(id).classList.add('hidden');
-                document.getElementById(id).classList.remove('flex');
+                const el = document.getElementById(id);
+                if (el) {
+                    el.classList.add('hidden');
+                    el.classList.remove('block', 'flex');
+                }
             });
-            document.getElementById('explanationBox').classList.add('hidden');
-            document.getElementById('quizContent').classList.remove('hidden', 'opacity-0');
-            document.getElementById('waitingOthersOverlay').classList.add('hidden');
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const msgEl = document.getElementById('toastMessage');
+            if (!toast || !msgEl) return;
+            
+            msgEl.innerText = message;
+            toast.classList.remove('opacity-0', 'pointer-events-none');
+            
+            clearTimeout(toast._timeout);
+            toast._timeout = setTimeout(() => {
+                toast.classList.add('opacity-0', 'pointer-events-none');
+            }, 2500);
         }
 
         function buildPlayerCards() {
             const grid = document.getElementById('playersGrid');
+            if (!grid) return;
             grid.innerHTML = '';
-            
-            // Adjust cols based on player count
-            const pCount = gameState.players.length;
-            grid.className = `grid gap-2 sm:gap-3 bg-indigo-900/60 backdrop-blur-sm rounded-2xl p-2 sm:p-3 border border-indigo-500/30 shadow-xl relative z-10 ${
-                pCount <= 2 ? 'grid-cols-2' : 'grid-cols-2 sm:grid-cols-4'
-            }`;
+
+            const avatars = ['👑', '😎', '🤠', '🦊'];
 
             gameState.players.forEach((p, idx) => {
+                const isCurrentTurn = (gameState.mode !== '4p' && idx === gameState.currentPlayerIdx);
                 const hpPercent = Math.max(0, (p.hp / MAX_HP) * 100);
-                const isMyTurn = (gameState.mode !== '4p' && gameState.currentPlayerIdx === idx);
-                const isMe = (gameState.mode === '4p' && p.id === gameState.myId);
-                
-                let borderClass = 'border-indigo-700/50';
-                if (isMyTurn) borderClass = 'border-yellow-400 shadow-[0_0_10px_rgba(250,204,21,0.5)]';
-                else if (isMe) borderClass = 'border-blue-400';
+                const avatar = p.isAI ? '🤖' : (avatars[idx % avatars.length]);
 
-                const hpColor = hpPercent > 50 ? 'bg-emerald-500' : (hpPercent > 20 ? 'bg-amber-500' : 'bg-red-500');
-                const deadVisual = p.isAlive ? '' : 'grayscale opacity-50';
-                const avatar = p.isAI ? '🤖' : (idx === 0 ? '😎' : (idx===1?'🤠':(idx===2?'🦊':'🐱')));
+                const card = document.createElement('div');
+                card.id = `playerCard-${idx}`;
+                card.className = `bg-indigo-950/70 p-2.5 rounded-xl border relative transition-all duration-300 flex flex-col justify-between ${
+                    isCurrentTurn ? 'border-yellow-400 ring-2 ring-yellow-400/50 scale-102' : 'border-indigo-700/50'
+                } ${!p.isAlive ? 'grayscale opacity-50' : ''}`;
 
-                grid.innerHTML += `
-                    <div id="playerCard-${idx}" class="bg-indigo-950/80 rounded-xl p-2 border-2 ${borderClass} flex flex-col items-center gap-1.5 transition-all ${deadVisual} relative">
-                        ${isMe ? '<div class="absolute -top-2 -left-2 bg-blue-500 text-[10px] px-1.5 rounded text-white font-bold">ME</div>' : ''}
-                        <div class="text-2xl sm:text-3xl filter drop-shadow">${avatar}</div>
-                        <div class="text-[11px] sm:text-xs font-bold text-slate-200 truncate w-full text-center">${p.name}</div>
-                        
-                        <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden border border-indigo-900">
-                            <div id="hpFill-${idx}" class="hp-bar-fill h-full ${hpColor}" style="width: ${hpPercent}%"></div>
+                card.innerHTML = `
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="text-xl sm:text-2xl">${avatar}</span>
+                        <div class="flex-1 overflow-hidden">
+                            <div class="text-xs sm:text-sm font-bold text-white truncate">${p.name}</div>
+                            <div class="text-[10px] text-indigo-300 font-mono">${Math.max(0, p.hp)} HP</div>
                         </div>
-                        <div class="text-[9px] sm:text-[10px] font-mono text-indigo-300 font-bold">${Math.max(0, p.hp)} HP</div>
-                        
-                        ${!p.isAlive ? '<div class="absolute inset-0 bg-red-900/40 flex items-center justify-center rounded-xl font-jua text-red-300 transform rotate-12 text-lg drop-shadow-md">탈락</div>' : ''}
+                    </div>
+                    <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden border border-indigo-900">
+                        <div id="hpFill-${idx}" class="hp-bar-fill h-full ${
+                            hpPercent > 50 ? 'bg-emerald-500' : (hpPercent > 20 ? 'bg-amber-500' : 'bg-red-500')
+                        }" style="width: ${hpPercent}%"></div>
+                    </div>
+                    ${!p.isAlive ? '<div class="absolute inset-0 bg-red-900/40 flex items-center justify-center rounded-xl font-jua text-red-300 transform rotate-12 text-base drop-shadow-md">탈락</div>' : ''}
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // --- 5. PEERJS MULTIPLAYER NETWORKING ENGINE ---
+        let peerInstance = null;
+        let hostConn = null;
+        let guestConns = {};
+
+        function initPeerAsHost(roomCode, onOpenCallback, onErrorCallback) {
+            if (peerInstance) peerInstance.destroy();
+            guestConns = {};
+            
+            const peerId = `kor6th-spelling-${roomCode}`;
+            peerInstance = new Peer(peerId, { debug: 1 });
+
+            peerInstance.on('open', (id) => {
+                if (onOpenCallback) onOpenCallback(id);
+            });
+
+            peerInstance.on('connection', (conn) => {
+                conn.on('open', () => {
+                    guestConns[conn.peer] = conn;
+                });
+
+                conn.on('data', (data) => {
+                    handleHostReceivedData(conn, data);
+                });
+
+                conn.on('close', () => {
+                    delete guestConns[conn.peer];
+                    gameState.players = gameState.players.filter(p => p.id !== conn.peer);
+                    broadcastToGuests({ type: 'LOBBY_UPDATE', players: gameState.players });
+                    updateLobbyUI();
+                });
+            });
+
+            peerInstance.on('error', (err) => {
+                console.warn('Peer host error:', err);
+                if (onErrorCallback) onErrorCallback(err);
+            });
+        }
+
+        function initPeerAsGuest(roomCode, joinName, onSuccessCallback, onErrorCallback) {
+            if (peerInstance) peerInstance.destroy();
+            
+            peerInstance = new Peer();
+
+            peerInstance.on('open', (myPeerId) => {
+                gameState.myId = myPeerId;
+                const hostPeerId = `kor6th-spelling-${roomCode}`;
+                hostConn = peerInstance.connect(hostPeerId, { reliable: true });
+
+                hostConn.on('open', () => {
+                    hostConn.send({ type: 'JOIN', name: joinName });
+                    if (onSuccessCallback) onSuccessCallback();
+                });
+
+                hostConn.on('data', (data) => {
+                    handleGuestReceivedData(data);
+                });
+
+                hostConn.on('close', () => {
+                    showToast("방장과 연결이 끊어졌습니다.");
+                    game.showHome();
+                });
+
+                hostConn.on('error', (err) => {
+                    if (onErrorCallback) onErrorCallback(err);
+                });
+            });
+
+            peerInstance.on('error', (err) => {
+                console.warn('Peer guest error:', err);
+                if (onErrorCallback) onErrorCallback(err);
+            });
+        }
+
+        function broadcastToGuests(msg) {
+            Object.values(guestConns).forEach(conn => {
+                if (conn && conn.open) conn.send(msg);
+            });
+        }
+
+        function handleHostReceivedData(conn, data) {
+            if (data.type === 'JOIN') {
+                if (gameState.players.length >= 4) {
+                    conn.send({ type: 'ERROR', message: '방이 꽉 찼습니다 (최대 4명).' });
+                    return;
+                }
+                const newPlayer = { id: conn.peer, name: data.name || '학생', hp: MAX_HP, isAlive: true };
+                if (!gameState.players.some(p => p.id === conn.peer)) {
+                    gameState.players.push(newPlayer);
+                }
+                broadcastToGuests({ type: 'LOBBY_UPDATE', players: gameState.players });
+                updateLobbyUI();
+            } else if (data.type === 'SUBMIT_ANSWER') {
+                gameState.answers[conn.peer] = data.answerIdx;
+                checkAllAnsweredHost();
+            }
+        }
+
+        function handleGuestReceivedData(data) {
+            if (data.type === 'LOBBY_UPDATE') {
+                gameState.players = data.players;
+                updateLobbyUI();
+            } else if (data.type === 'START_GAME') {
+                gameState.players = data.players;
+                gameState.currentRound = data.round;
+                gameState.currentQuestion = QUIZ_DATABASE[data.questionIdx];
+                
+                hideAllScreens();
+                document.getElementById('battleScreen').classList.remove('hidden');
+                document.getElementById('battleScreen').classList.add('flex');
+                document.getElementById('multiplayerStatus').classList.remove('hidden');
+                document.getElementById('explanationBox').classList.add('hidden');
+                document.getElementById('quizContent').classList.remove('hidden', 'opacity-0');
+                document.getElementById('waitingOthersOverlay').classList.add('hidden');
+
+                document.getElementById('turnBadge').innerText = `🔥 모두의 턴!`;
+                document.getElementById('stageProgress').innerText = `라운드 ${data.round}`;
+
+                buildPlayerCards();
+                renderQuestionUI(gameState.currentQuestion);
+                startTimer(TIME_LIMIT, () => {});
+            } else if (data.type === 'ROUND_RESULT') {
+                clearInterval(gameState.timer);
+                document.getElementById('timerBar').style.width = '0%';
+                document.getElementById('waitingOthersOverlay').classList.add('hidden');
+
+                gameState.players = data.players;
+                updatePlayerHPUI();
+
+                const myAns = data.answers[gameState.myId];
+                const isCorrect = (myAns === gameState.currentQuestion.answer);
+
+                if (isCorrect) playSound('correct'); else playSound('wrong');
+                showExplanationUI(isCorrect, gameState.currentQuestion, myAns === undefined);
+            } else if (data.type === 'GAME_OVER') {
+                gameState.players = data.players;
+                endGameLocal();
+            } else if (data.type === 'ERROR') {
+                showToast(data.message);
+            }
+        }
+
+        function updateLobbyUI() {
+            document.getElementById('playerCountText').innerText = gameState.players.length;
+            const list = document.getElementById('playerLobbyList');
+            if (!list) return;
+            list.innerHTML = '';
+            const avatars = ['👑', '😎', '🤠', '🦊'];
+            gameState.players.forEach((p, i) => {
+                const isMe = p.id === gameState.myId;
+                const avatar = avatars[i % avatars.length];
+                list.innerHTML += `
+                    <div class="flex items-center gap-3 bg-indigo-900/40 p-2.5 rounded-lg border border-indigo-700/50">
+                        <span class="text-2xl">${avatar}</span>
+                        <span class="font-bold text-white text-sm flex-1">${p.name}</span>
+                        ${isMe ? '<span class="text-[10px] bg-blue-500 text-white px-2 py-0.5 rounded-full font-bold shadow">ME</span>' : ''}
                     </div>
                 `;
             });
@@ -705,23 +745,23 @@
             gameState.players.forEach((p, idx) => {
                 const hpFill = document.getElementById(`hpFill-${idx}`);
                 const card = document.getElementById(`playerCard-${idx}`);
-                if(hpFill && card) {
+                if (hpFill && card) {
                     const hpPercent = Math.max(0, (p.hp / MAX_HP) * 100);
                     hpFill.style.width = `${hpPercent}%`;
                     
                     hpFill.className = `hp-bar-fill h-full ${hpPercent > 50 ? 'bg-emerald-500' : (hpPercent > 20 ? 'bg-amber-500' : 'bg-red-500')}`;
                     
-                    card.querySelector('div:last-of-type').innerText = `${Math.max(0, p.hp)} HP`;
+                    const hpTextEl = card.querySelector('div.font-mono');
+                    if (hpTextEl) hpTextEl.innerText = `${Math.max(0, p.hp)} HP`;
                     
-                    if(!p.isAlive && !card.innerHTML.includes('탈락')) {
+                    if (!p.isAlive && !card.innerHTML.includes('탈락')) {
                         card.classList.add('grayscale', 'opacity-50');
-                        card.innerHTML += '<div class="absolute inset-0 bg-red-900/40 flex items-center justify-center rounded-xl font-jua text-red-300 transform rotate-12 text-lg drop-shadow-md">탈락</div>';
+                        card.innerHTML += '<div class="absolute inset-0 bg-red-900/40 flex items-center justify-center rounded-xl font-jua text-red-300 transform rotate-12 text-base drop-shadow-md">탈락</div>';
                     }
                 }
             });
         }
 
-        // --- STREAMING_CHUNK:Implementing Core Game Logic (Local Modes)... ---
         // --- 6. CORE GAME LOGIC (1P & 2P) ---
         function initializeLocalGame(mode) {
             gameState.mode = mode;
@@ -730,7 +770,7 @@
             gameState.questionPool = shuffle([...QUIZ_DATABASE]);
             gameState.answers = {};
             
-            const myId = window.firebaseCtx?.auth?.currentUser?.uid || 'local_' + Math.random().toString(36).substring(7);
+            const myId = 'local_user';
             gameState.myId = myId;
 
             if (mode === '1p') {
@@ -743,7 +783,7 @@
                     { id: 'p1', name: '도전자 1', hp: MAX_HP, isAlive: true, isAI: false },
                     { id: 'p2', name: '도전자 2', hp: MAX_HP, isAlive: true, isAI: false }
                 ];
-                gameState.myId = 'p1'; // Doesn't strictly matter for local 2P
+                gameState.myId = 'p1';
             }
 
             gameState.currentPlayerIdx = 0;
@@ -758,21 +798,18 @@
         }
 
         function startNextRoundLocal() {
-            // Check win/loss condition
             const alivePlayers = gameState.players.filter(p => p.isAlive);
             if (alivePlayers.length <= 1 || gameState.currentRound >= gameState.maxRounds) {
                 endGameLocal();
                 return;
             }
 
-            // Find next alive player
             while(!gameState.players[gameState.currentPlayerIdx].isAlive) {
                 gameState.currentPlayerIdx = (gameState.currentPlayerIdx + 1) % gameState.players.length;
             }
 
             gameState.currentRound++;
             gameState.currentQuestion = gameState.questionPool.pop();
-            // Refill pool if empty
             if(!gameState.currentQuestion) {
                 gameState.questionPool = shuffle([...QUIZ_DATABASE]);
                 gameState.currentQuestion = gameState.questionPool.pop();
@@ -785,20 +822,19 @@
             document.getElementById('turnBadge').innerText = `👉 ${curP.name}의 턴!`;
             document.getElementById('stageProgress').innerText = `라운드 ${gameState.currentRound} / ${gameState.maxRounds}`;
 
-            buildPlayerCards(); // update visual borders
+            buildPlayerCards();
             renderQuestionUI(gameState.currentQuestion);
 
             startTimer(TIME_LIMIT, () => handleTimeoutLocal());
 
             if (curP.isAI) {
-                // AI Logic: slight delay, then pick answer (80% chance correct)
                 setTimeout(() => {
-                    if(gameState.timer) {
+                    if (gameState.timer) {
                         const isCorrect = Math.random() < 0.8;
                         const ansIdx = isCorrect ? gameState.currentQuestion.answer : (1 - gameState.currentQuestion.answer);
                         processAnswerLocal(ansIdx);
                     }
-                }, 2000 + Math.random() * 2000); // 2-4 seconds thinking
+                }, 1800 + Math.random() * 1500);
             }
         }
 
@@ -809,7 +845,6 @@
             const optsContainer = document.getElementById('optionsContainer');
             optsContainer.innerHTML = '';
             
-            // Randomize options visually to prevent memorizing positions
             const shuffledIndices = Math.random() > 0.5 ? [0, 1] : [1, 0];
             
             shuffledIndices.forEach(idx => {
@@ -818,7 +853,6 @@
                 btn.innerText = q.options[idx];
                 
                 btn.onclick = () => {
-                    // Prevent clicking if AI turn
                     if (gameState.mode !== '4p' && gameState.players[gameState.currentPlayerIdx].isAI) return;
                     
                     if (gameState.mode === '4p') {
@@ -837,12 +871,10 @@
             gameState.timeLeft = seconds;
             const timerBar = document.getElementById('timerBar');
             
-            // Reset visual
             timerBar.style.transition = 'none';
             timerBar.style.width = '100%';
             timerBar.className = 'h-full w-full relative bg-emerald-500';
             
-            // Force reflow
             void timerBar.offsetWidth;
             
             timerBar.style.transition = `width ${seconds}s linear, background-color 1s`;
@@ -869,24 +901,22 @@
             applyDamage(curPIdx, isCorrect);
             showExplanationUI(isCorrect, q);
             
-            // Advance turn visually before clicking next
             gameState.currentPlayerIdx = (gameState.currentPlayerIdx + 1) % gameState.players.length;
         }
 
         function handleTimeoutLocal() {
             playSound('wrong');
             const q = gameState.currentQuestion;
-            applyDamage(gameState.currentPlayerIdx, false); // Treat timeout as wrong
+            applyDamage(gameState.currentPlayerIdx, false);
             showExplanationUI(false, q, true);
             gameState.currentPlayerIdx = (gameState.currentPlayerIdx + 1) % gameState.players.length;
         }
 
-        // --- STREAMING_CHUNK:Implementing Damage & Result UI... ---
+        // --- 7. DAMAGE & RESULT EVALUATION ---
         function applyDamage(attackerIdx, isCorrect) {
             if (isCorrect) {
                 playSound('correct');
                 
-                // Heal attacker
                 const attacker = gameState.players[attackerIdx];
                 if (attacker && attacker.isAlive) {
                     attacker.hp = Math.min(MAX_HP, attacker.hp + HEAL_AMT);
@@ -898,33 +928,29 @@
                     playSound('heal');
                 }
 
-                // Damage everyone else
                 let hitSomeone = false;
                 gameState.players.forEach((p, idx) => {
                     if (idx !== attackerIdx && p.isAlive) {
                         p.hp -= DAMAGE_AMT;
                         hitSomeone = true;
-                        // Visual effect on victim card
                         const card = document.getElementById(`playerCard-${idx}`);
-                        if(card) {
+                        if (card) {
                             card.classList.add('animate-damage');
-                            setTimeout(()=>card.classList.remove('animate-damage'), 300);
+                            setTimeout(() => card.classList.remove('animate-damage'), 300);
                         }
                     }
                 });
-                if(hitSomeone) drawSlashEffect();
+                if (hitSomeone) drawSlashEffect();
             } else {
                 playSound('wrong');
-                // Damage self
                 gameState.players[attackerIdx].hp -= DAMAGE_AMT;
                 const card = document.getElementById(`playerCard-${attackerIdx}`);
-                if(card) {
+                if (card) {
                     card.classList.add('animate-damage');
-                    setTimeout(()=>card.classList.remove('animate-damage'), 300);
+                    setTimeout(() => card.classList.remove('animate-damage'), 300);
                 }
             }
 
-            // Check deaths
             gameState.players.forEach(p => {
                 if (p.hp <= 0) p.isAlive = false;
             });
@@ -940,7 +966,6 @@
             const iconBox = document.getElementById('resultIconBox');
             const title = document.getElementById('resultTitle');
             
-            // reset styles
             expBox.className = 'bg-indigo-950/95 backdrop-blur-xl border-2 rounded-2xl p-5 shadow-2xl relative z-20 transition-all';
             
             if (isCorrect) {
@@ -955,20 +980,17 @@
                 iconBox.innerHTML = '❌';
                 title.className = 'font-jua text-lg sm:text-xl mb-1.5 text-red-400';
                 title.innerText = isTimeout ? '시간 초과! 데미지를 입었습니다.' : '오답입니다! 데미지를 입었습니다.';
-                setTimeout(()=>expBox.classList.remove('animate-shake'), 400);
+                setTimeout(() => expBox.classList.remove('animate-shake'), 400);
             }
 
-            // Highlight correct answer in sentence for explanation
-            const correctWord = q.options[q.answer];
             document.getElementById('resultText').innerHTML = q.explanation;
             document.getElementById('tipText').innerHTML = q.tip;
 
-            // Handle Multiplayer UI differences
-            if(gameState.mode === '4p') {
+            if (gameState.mode === '4p') {
                 document.getElementById('nextTurnBtnWrapper').classList.add('hidden');
                 document.getElementById('waitingHostNextText').classList.remove('hidden');
                 
-                if(gameState.isHost) {
+                if (gameState.isHost) {
                     document.getElementById('nextTurnBtnWrapper').classList.remove('hidden');
                     document.getElementById('waitingHostNextText').classList.add('hidden');
                     document.getElementById('nextBtn').innerText = '다음 문제 출제하기 ➔';
@@ -998,13 +1020,11 @@
                 sub.innerText = "끝까지 살아남은 최후의 승자입니다.";
                 badgeTitle.innerText = "서바이벌 챔피언";
             } else {
-                // Time limit reached
                 title.innerText = `게임 종료!`;
                 sub.innerText = "지정된 라운드가 모두 끝났습니다.";
                 badgeTitle.innerText = "맞춤법 마스터";
             }
 
-            // Build Leaderboard
             const lbList = document.getElementById('leaderboardList');
             lbList.innerHTML = '';
             sorted.forEach((p, idx) => {
@@ -1016,27 +1036,61 @@
                             <span class="text-xl">${medal}</span>
                             <span class="font-bold text-white">${p.name} ${p.isAI ? '(AI)' : ''}</span>
                         </div>
-                        <span class="font-mono font-bold ${p.hp>0 ? 'text-emerald-400' : 'text-red-400'}">${Math.max(0, p.hp)} HP</span>
+                        <span class="font-mono font-bold ${p.hp > 0 ? 'text-emerald-400' : 'text-red-400'}">${Math.max(0, p.hp)} HP</span>
                     </div>
                 `;
             });
 
-            // Very simple CSS confetti
             createConfetti();
+        }
+
+        // --- 8. CANVAS VISUAL EFFECTS ---
+        function drawSlashEffect() {
+            const canvas = document.getElementById('attackCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeStyle = '#facc15'; // yellow light beam
+            ctx.lineWidth = 6;
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = '#eab308';
+
+            let progress = 0;
+            function animateSlash() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.beginPath();
+                ctx.moveTo(canvas.width * 0.1, canvas.height * 0.2);
+                ctx.lineTo(canvas.width * 0.1 + (canvas.width * 0.8) * progress, canvas.height * 0.2 + (canvas.height * 0.6) * progress);
+                ctx.stroke();
+
+                progress += 0.2;
+                if (progress <= 1) {
+                    requestAnimationFrame(animateSlash);
+                } else {
+                    setTimeout(() => ctx.clearRect(0, 0, canvas.width, canvas.height), 100);
+                }
+            }
+            animateSlash();
         }
 
         function createConfetti() {
             const canvas = document.getElementById('confettiCanvas');
+            if (!canvas) return;
             const ctx = canvas.getContext('2d');
             canvas.width = canvas.offsetWidth;
             canvas.height = canvas.offsetHeight;
             
             let particles = [];
-            for(let i=0; i<100; i++) {
+            for (let i = 0; i < 100; i++) {
                 particles.push({
-                    x: canvas.width/2, y: canvas.height,
-                    vx: (Math.random() - 0.5) * 15, vy: -(Math.random() * 15 + 10),
-                    color: `hsl(${Math.random()*360}, 100%, 50%)`,
+                    x: canvas.width / 2,
+                    y: canvas.height / 2,
+                    vx: (Math.random() - 0.5) * 16,
+                    vy: (Math.random() - 0.5) * 16 - 4,
+                    color: `hsl(${Math.random() * 360}, 100%, 60%)`,
                     size: Math.random() * 8 + 4
                 });
             }
@@ -1046,114 +1100,61 @@
                 particles.forEach(p => {
                     p.x += p.vx;
                     p.y += p.vy;
-                    p.vy += 0.5; // gravity
+                    p.vy += 0.4;
                     ctx.fillStyle = p.color;
                     ctx.fillRect(p.x, p.y, p.size, p.size);
                 });
-                if(particles.some(p => p.y < canvas.height)) requestAnimationFrame(animate);
+                if (particles.some(p => p.y < canvas.height)) {
+                    requestAnimationFrame(animate);
+                }
             }
-            playSound('correct'); // reuse sound
+            playSound('correct');
             animate();
         }
 
-
-        // --- STREAMING_CHUNK:Implementing Firebase Multiplayer Logic... ---
-        // --- 7. MULTIPLAYER LOGIC (FIREBASE) ---
-        
-        async function getRoomDoc(code) {
-            const { db, appId, doc } = window.firebaseCtx;
-            return doc(db, 'artifacts', appId, 'public', 'data', 'rooms', code);
-        }
-
-        async function create4PRoom() {
+        // --- 9. MULTIPLAYER CONTROL HELPERS ---
+        function create4PRoom() {
             const hostName = document.getElementById('hostNameInput').value.trim() || '방장';
-            const { db, auth, setDoc } = window.firebaseCtx;
             
-            if(!auth.currentUser) {
-                showToast("로그인 중입니다. 잠시 후 다시 시도해주세요.");
-                return;
-            }
-
-            gameState.myId = auth.currentUser.uid;
             gameState.isHost = true;
             gameState.mode = '4p';
             
-            // Generate 4 digit code
             const code = Math.floor(1000 + Math.random() * 9000).toString();
             gameState.roomCode = code;
 
-            const roomRef = await getRoomDoc(code);
-            
-            try {
-                // Initialize Room Document
-                await setDoc(roomRef, {
-                    status: 'lobby', // lobby, playing, result, gameover
-                    hostId: gameState.myId,
-                    players: [{ id: gameState.myId, name: hostName, hp: MAX_HP, isAlive: true }],
-                    round: 0,
-                    questionIdx: -1,
-                    turnStartTime: 0,
-                    answers: {}, // map of uid -> answerIdx
-                    createdAt: Date.now()
-                });
+            showToast("방을 생성하는 중...");
 
+            initPeerAsHost(code, (peerId) => {
+                gameState.myId = peerId;
+                gameState.players = [{ id: peerId, name: hostName, hp: MAX_HP, isAlive: true }];
                 showToast("방이 생성되었습니다!");
                 enterLobby(code);
-            } catch (e) {
-                console.error(e);
-                showToast("방 생성 실패. 다시 시도해주세요.");
-            }
+            }, (err) => {
+                showToast("방 생성 중 오류가 발생했습니다. 다시 시도해 주세요.");
+            });
         }
 
-        async function join4PRoom(codeFromUrl = null) {
+        function join4PRoom(codeFromUrl = null) {
             const code = codeFromUrl || document.getElementById('joinCodeInput').value.trim().toUpperCase();
             const joinName = document.getElementById('joinNameInput').value.trim() || '학생';
             
-            if(!code || code.length !== 4) {
+            if (!code || code.length !== 4) {
                 showToast("4자리 방 코드를 입력하세요.");
                 return;
             }
 
-            const { auth, getDoc, updateDoc } = window.firebaseCtx;
-            if(!auth.currentUser) return showToast("로그인 대기중...");
-
-            gameState.myId = auth.currentUser.uid;
             gameState.isHost = false;
             gameState.mode = '4p';
             gameState.roomCode = code;
 
-            const roomRef = await getRoomDoc(code);
-            
-            try {
-                const docSnap = await getDoc(roomRef);
-                if (!docSnap.exists()) {
-                    showToast("존재하지 않는 방입니다.");
-                    return;
-                }
-                
-                const data = docSnap.data();
-                if (data.status !== 'lobby') {
-                    showToast("이미 게임이 시작된 방입니다.");
-                    return;
-                }
-                
-                if (data.players.length >= 4 && !data.players.find(p => p.id === gameState.myId)) {
-                    showToast("방이 꽉 찼습니다 (최대 4명).");
-                    return;
-                }
+            showToast("방에 접속하는 중...");
 
-                // Add self to players if not already there
-                const players = [...data.players];
-                if (!players.find(p => p.id === gameState.myId)) {
-                    players.push({ id: gameState.myId, name: joinName, hp: MAX_HP, isAlive: true });
-                    await updateDoc(roomRef, { players });
-                }
-
+            initPeerAsGuest(code, joinName, () => {
+                showToast("방에 입장했습니다!");
                 enterLobby(code);
-            } catch (e) {
-                console.error(e);
-                showToast("입장 오류 발생.");
-            }
+            }, (err) => {
+                showToast("방에 접속할 수 없습니다. 방 코드를 확인해 주세요.");
+            });
         }
 
         function enterLobby(code) {
@@ -1162,7 +1163,6 @@
             document.getElementById('lobbyScreen').classList.add('block');
             document.getElementById('lobbyCodeDisplay').innerText = code;
 
-            // Generate QR linking to this page with code
             const qrcodeDiv = document.getElementById("qrcode");
             qrcodeDiv.innerHTML = "";
             const currentUrl = window.location.href.split('?')[0];
@@ -1170,9 +1170,9 @@
                 text: `${currentUrl}?room=${code}`,
                 width: 120,
                 height: 120,
-                colorDark : "#1e1b4b",
-                colorLight : "#ffffff",
-                correctLevel : QRCode.CorrectLevel.L
+                colorDark: "#1e1b4b",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.L
             });
 
             if (gameState.isHost) {
@@ -1187,272 +1187,171 @@
                 document.getElementById('lobbyInstruction').innerText = "방장이 게임을 시작하기를 기다립니다.";
             }
 
-            listenToRoom(code);
+            updateLobbyUI();
         }
 
-        // --- STREAMING_CHUNK:Firebase Sync Logic... ---
-        async function listenToRoom(code) {
-            const { onSnapshot } = window.firebaseCtx;
-            if(gameState.unsubscribeRoom) gameState.unsubscribeRoom();
+        function startMultiplayerGame() {
+            if (!gameState.isHost) return;
             
-            const roomRef = await getRoomDoc(code);
-            
-            gameState.unsubscribeRoom = onSnapshot(roomRef, (docSnap) => {
-                if (!docSnap.exists()) {
-                    showToast("방이 삭제되었습니다.");
-                    game.showHome();
-                    return;
-                }
-                
-                const data = docSnap.data();
-                syncGameState(data);
-            }, (error) => {
-                console.error("Listen error:", error);
+            gameState.currentRound = 1;
+            const qIdx = Math.floor(Math.random() * QUIZ_DATABASE.length);
+            gameState.currentQuestion = QUIZ_DATABASE[qIdx];
+            gameState.answers = {};
+
+            broadcastToGuests({
+                type: 'START_GAME',
+                players: gameState.players,
+                round: 1,
+                questionIdx: qIdx
             });
+
+            hideAllScreens();
+            document.getElementById('battleScreen').classList.remove('hidden');
+            document.getElementById('battleScreen').classList.add('flex');
+            document.getElementById('multiplayerStatus').classList.remove('hidden');
+            document.getElementById('explanationBox').classList.add('hidden');
+            document.getElementById('quizContent').classList.remove('hidden', 'opacity-0');
+            document.getElementById('waitingOthersOverlay').classList.add('hidden');
+
+            document.getElementById('turnBadge').innerText = `🔥 모두의 턴!`;
+            document.getElementById('stageProgress').innerText = `라운드 1`;
+
+            buildPlayerCards();
+            renderQuestionUI(gameState.currentQuestion);
+            startTimer(TIME_LIMIT, () => handleTimeoutMultiplayerHost());
         }
 
-        function syncGameState(data) {
-            gameState.players = data.players;
-            gameState.currentRound = data.round;
-            gameState.answers = data.answers || {};
-            
-            // Sync Lobby UI
-            if (data.status === 'lobby') {
-                document.getElementById('playerCountText').innerText = data.players.length;
-                const list = document.getElementById('playerLobbyList');
-                list.innerHTML = '';
-                data.players.forEach((p, i) => {
-                    const isMe = p.id === gameState.myId;
-                    const avatar = i===0?'👑':(i===1?'😎':(i===2?'🤠':'🦊'));
-                    list.innerHTML += `
-                        <div class="flex items-center gap-3 bg-indigo-900/40 p-2.5 rounded-lg border border-indigo-700/50">
-                            <span class="text-2xl">${avatar}</span>
-                            <span class="font-bold text-white text-sm flex-1">${p.name}</span>
-                            ${isMe ? '<span class="text-[10px] bg-blue-500 text-white px-2 py-0.5 rounded-full font-bold shadow">ME</span>' : ''}
-                        </div>
-                    `;
-                });
-            }
-
-            // Status Transitions
-            if (gameState.multiplayerState !== data.status) {
-                gameState.multiplayerState = data.status;
-                
-                if (data.status === 'playing') {
-                    hideAllScreens();
-                    document.getElementById('battleScreen').classList.remove('hidden');
-                    document.getElementById('battleScreen').classList.add('flex');
-                    document.getElementById('multiplayerStatus').classList.remove('hidden');
-                    
-                    // Host sets up question, clients just render it
-                    // Since it's a shared pool, we'll just use a seeded/fixed array or have host broadcast index.
-                    // To keep it simple, host picks an index from 0 to QUIZ_DATABASE.length
-                    if (data.questionIdx >= 0) {
-                        gameState.currentQuestion = QUIZ_DATABASE[data.questionIdx % QUIZ_DATABASE.length];
-                        document.getElementById('explanationBox').classList.add('hidden');
-                        document.getElementById('quizContent').classList.remove('hidden', 'opacity-0');
-                        document.getElementById('waitingOthersOverlay').classList.add('hidden');
-                        
-                        document.getElementById('turnBadge').innerText = `🔥 모두의 턴!`;
-                        document.getElementById('stageProgress').innerText = `라운드 ${data.round}`;
-                        
-                        buildPlayerCards();
-                        renderQuestionUI(gameState.currentQuestion);
-                        
-                        // Sync Timer visually (rough estimate based on timestamp)
-                        const elapsed = (Date.now() - data.turnStartTime) / 1000;
-                        const remaining = Math.max(0, TIME_LIMIT - elapsed);
-                        if(remaining > 0) {
-                            startTimerMultiplayer(remaining);
-                        }
-                    }
-                }
-                
-                if (data.status === 'result') {
-                    // Host evaluated, show result
-                    clearInterval(gameState.timer);
-                    document.getElementById('timerBar').style.width = '0%';
-                    document.getElementById('waitingOthersOverlay').classList.add('hidden');
-                    
-                    // Update HP visually based on synced players array
-                    updatePlayerHPUI();
-                    
-                    // Did I get it right?
-                    const myAns = gameState.answers[gameState.myId];
-                    const isCorrect = myAns === gameState.currentQuestion.answer;
-                    
-                    // Check if anyone took damage to play sound/effect
-                    const prevHpMap = {}; 
-                    // ... ideally track previous hp to show exactly who took damage, 
-                    // for simplicity just play effect if it's result screen
-                    if (isCorrect) playSound('correct'); else playSound('wrong');
-                    
-                    showExplanationUI(isCorrect, gameState.currentQuestion, myAns === undefined);
-                }
-
-                if (data.status === 'gameover') {
-                    endGameLocal(); // Re-use local end game UI which reads gameState.players
-                }
-            }
-
-            // Host Logic during playing: check if everyone answered or time is up
-            if (gameState.isHost && data.status === 'playing') {
-                const alivePlayers = data.players.filter(p => p.isAlive);
-                const allAnswered = alivePlayers.every(p => data.answers[p.id] !== undefined);
-                const timeUp = (Date.now() - data.turnStartTime) > TIME_LIMIT * 1000;
-                
-                if (allAnswered || timeUp) {
-                    evaluateMultiplayerTurn(data);
-                }
-            }
-        }
-
-        async function startMultiplayerGame() {
-            if(!gameState.isHost) return;
-            const { updateDoc } = window.firebaseCtx;
-            const roomRef = await getRoomDoc(gameState.roomCode);
-            
-            try {
-                await updateDoc(roomRef, {
-                    status: 'playing',
-                    round: 1,
-                    questionIdx: Math.floor(Math.random() * QUIZ_DATABASE.length),
-                    turnStartTime: Date.now(),
-                    answers: {}
-                });
-            } catch(e) { console.error(e); }
-        }
-
-        function startTimerMultiplayer(seconds) {
-            clearInterval(gameState.timer);
-            const timerBar = document.getElementById('timerBar');
-            timerBar.style.transition = 'none';
-            timerBar.style.width = `${(seconds/TIME_LIMIT)*100}%`;
-            void timerBar.offsetWidth;
-            timerBar.style.transition = `width ${seconds}s linear`;
-            timerBar.style.width = '0%';
-            
-            // Just for local visual ticking
-            gameState.timer = setInterval(()=>{}, 1000); 
-        }
-
-        async function submitAnswerMultiplayer(idx) {
+        function submitAnswerMultiplayer(idx) {
             playSound('select');
-            // Show wait overlay
             document.getElementById('waitingOthersOverlay').classList.remove('hidden');
             
-            const { updateDoc } = window.firebaseCtx;
-            const roomRef = await getRoomDoc(gameState.roomCode);
-            
-            const ansKey = `answers.${gameState.myId}`;
-            try {
-                await updateDoc(roomRef, {
-                    [ansKey]: idx
-                });
-            } catch(e) { console.error("Submit error", e); }
+            if (gameState.isHost) {
+                gameState.answers[gameState.myId] = idx;
+                checkAllAnsweredHost();
+            } else {
+                if (hostConn && hostConn.open) {
+                    hostConn.send({ type: 'SUBMIT_ANSWER', answerIdx: idx });
+                }
+            }
         }
 
-        async function evaluateMultiplayerTurn(data) {
-            // ONLY HOST CALLS THIS
-            const { updateDoc, deleteField } = window.firebaseCtx;
-            const roomRef = await getRoomDoc(gameState.roomCode);
+        function checkAllAnsweredHost() {
+            if (!gameState.isHost) return;
+            const alivePlayers = gameState.players.filter(p => p.isAlive);
+            const allAnswered = alivePlayers.every(p => gameState.answers[p.id] !== undefined);
             
-            const q = QUIZ_DATABASE[data.questionIdx % QUIZ_DATABASE.length];
-            const updatedPlayers = [...data.players];
-            
-            // Calculate Damage & Healing
-            let totalDamageToOthers = 0;
-            
-            updatedPlayers.forEach(p => {
-                if(!p.isAlive) return;
-                const ans = data.answers[p.id];
-                if (ans === q.answer) {
-                    p.hp = Math.min(MAX_HP, p.hp + HEAL_AMT); // 정답자는 HP 회복
-                    totalDamageToOthers += 10; // For every correct answer, others suffer
-                } else {
-                    p.hp -= DAMAGE_AMT; // Wrong or no answer
-                }
-            });
+            if (allAnswered) {
+                evaluateMultiplayerTurnPeer();
+            }
+        }
 
-            // Apply cumulative damage from correct answers
-            updatedPlayers.forEach(p => {
-                if(!p.isAlive) return;
-                const ans = data.answers[p.id];
-                if (ans !== q.answer) {
-                    p.hp -= totalDamageToOthers;
+        function handleTimeoutMultiplayerHost() {
+            if (!gameState.isHost) return;
+            evaluateMultiplayerTurnPeer();
+        }
+
+        function evaluateMultiplayerTurnPeer() {
+            clearInterval(gameState.timer);
+            const q = gameState.currentQuestion;
+
+            gameState.players.forEach(p => {
+                if (!p.isAlive) return;
+                const ans = gameState.answers[p.id];
+                if (ans === q.answer) {
+                    p.hp = Math.min(MAX_HP, p.hp + HEAL_AMT);
+                } else {
+                    p.hp -= DAMAGE_AMT;
                 }
                 if (p.hp <= 0) p.isAlive = false;
             });
 
-            // Check game over
-            const aliveCount = updatedPlayers.filter(p => p.isAlive).length;
-            const isGameOver = aliveCount <= 1 || data.round >= 10;
+            const aliveCount = gameState.players.filter(p => p.isAlive).length;
+            const isGameOver = aliveCount <= 1 || gameState.currentRound >= 10;
 
-            try {
-                await updateDoc(roomRef, {
-                    status: isGameOver ? 'gameover' : 'result',
-                    players: updatedPlayers
-                });
-            } catch(e) { console.error(e); }
+            broadcastToGuests({
+                type: isGameOver ? 'GAME_OVER' : 'ROUND_RESULT',
+                players: gameState.players,
+                answers: gameState.answers
+            });
+
+            if (isGameOver) {
+                endGameLocal();
+            } else {
+                document.getElementById('waitingOthersOverlay').classList.add('hidden');
+                updatePlayerHPUI();
+                
+                const myAns = gameState.answers[gameState.myId];
+                const isCorrect = (myAns === q.answer);
+                if (isCorrect) playSound('correct'); else playSound('wrong');
+                showExplanationUI(isCorrect, q, myAns === undefined);
+            }
         }
 
-        // Called by Next button in result screen
-        async function proceedNextTurn() {
+        function proceedNextTurn() {
             if (gameState.mode === '4p') {
                 if (gameState.isHost) {
-                    const { updateDoc } = window.firebaseCtx;
-                    const roomRef = await getRoomDoc(gameState.roomCode);
-                    try {
-                        await updateDoc(roomRef, {
-                            status: 'playing',
-                            round: gameState.currentRound + 1,
-                            questionIdx: Math.floor(Math.random() * QUIZ_DATABASE.length),
-                            turnStartTime: Date.now(),
-                            answers: {} // Use simple empty object instead of deleteField map to avoid complex updates
-                        });
-                    } catch(e) { console.error(e); }
+                    gameState.currentRound++;
+                    const qIdx = Math.floor(Math.random() * QUIZ_DATABASE.length);
+                    gameState.currentQuestion = QUIZ_DATABASE[qIdx];
+                    gameState.answers = {};
+
+                    broadcastToGuests({
+                        type: 'START_GAME',
+                        players: gameState.players,
+                        round: gameState.currentRound,
+                        questionIdx: qIdx
+                    });
+
+                    document.getElementById('explanationBox').classList.add('hidden');
+                    document.getElementById('quizContent').classList.remove('hidden', 'opacity-0');
+                    document.getElementById('waitingOthersOverlay').classList.add('hidden');
+
+                    document.getElementById('turnBadge').innerText = `🔥 모두의 턴!`;
+                    document.getElementById('stageProgress').innerText = `라운드 ${gameState.currentRound}`;
+
+                    buildPlayerCards();
+                    renderQuestionUI(gameState.currentQuestion);
+                    startTimer(TIME_LIMIT, () => handleTimeoutMultiplayerHost());
                 }
             } else {
                 startNextRoundLocal();
             }
         }
 
-        async function leaveRoom() {
-            if (gameState.unsubscribeRoom) {
-                gameState.unsubscribeRoom();
-                gameState.unsubscribeRoom = null;
+        function leaveRoom() {
+            if (peerInstance) {
+                peerInstance.destroy();
+                peerInstance = null;
             }
             game.showHome();
         }
 
-        // --- STREAMING_CHUNK:Finalizing Game Object Export... ---
-        // --- 8. EXPORT API TO WINDOW ---
+        // --- 10. EXPORT GLOBAL API ---
         window.game = {
             showHome: () => {
-                if(gameState.unsubscribeRoom) {
-                    gameState.unsubscribeRoom();
-                    gameState.unsubscribeRoom = null;
+                if (peerInstance) {
+                    peerInstance.destroy();
+                    peerInstance = null;
                 }
                 clearInterval(gameState.timer);
                 hideAllScreens();
                 document.getElementById('startScreen').classList.remove('hidden');
                 document.getElementById('startScreen').classList.add('block');
                 
-                // Parse URL to check if we came from a QR code
                 const urlParams = new URLSearchParams(window.location.search);
                 const roomToJoin = urlParams.get('room');
                 if (roomToJoin) {
-                    // Clear URL parameter so it doesn't loop
                     window.history.replaceState({}, document.title, window.location.pathname);
                     document.getElementById('joinCodeInput').value = roomToJoin;
                     game.open4PSetup();
+                    showToast(`방 코드 [${roomToJoin}]가 입력되었습니다.`);
                 }
             },
             toggleSound: () => {
                 isSoundEnabled = !isSoundEnabled;
                 document.getElementById('soundIcon').innerText = isSoundEnabled ? '🔊' : '🔇';
                 document.getElementById('soundToggleBtn').classList.toggle('opacity-50');
-                if(isSoundEnabled) playSound('select');
+                if (isSoundEnabled) playSound('select');
             },
             startBattle: (mode) => {
                 playSound('select');
@@ -1471,10 +1370,9 @@
             leaveRoom: () => { playSound('select'); leaveRoom(); }
         };
 
-        // Initialize background particles slightly
         function initBgParticles() {
             const canvas = document.getElementById('bgCanvas');
-            if(!canvas) return;
+            if (!canvas) return;
             const ctx = canvas.getContext('2d');
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
@@ -1493,10 +1391,10 @@
                 particles.forEach(p => {
                     p.x += p.vx;
                     p.y += p.vy;
-                    if(p.x < 0) p.x = canvas.width;
-                    if(p.x > canvas.width) p.x = 0;
-                    if(p.y < 0) p.y = canvas.height;
-                    if(p.y > canvas.height) p.y = 0;
+                    if (p.x < 0) p.x = canvas.width;
+                    if (p.x > canvas.width) p.x = 0;
+                    if (p.y < 0) p.y = canvas.height;
+                    if (p.y > canvas.height) p.y = 0;
                     ctx.beginPath();
                     ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
                     ctx.fill();
@@ -1506,13 +1404,10 @@
             animateBg();
         }
 
-        // On Load
         window.onload = () => {
             initBgParticles();
-            // Trigger QR check
-            game.showHome(); 
+            game.showHome();
         };
-
     </script>
 </body>
 </html>
