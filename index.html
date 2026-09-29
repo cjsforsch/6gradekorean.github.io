@@ -8,12 +8,13 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- QRCode.js Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <!-- PeerJS Library for GitHub Pages P2P Multiplayer -->
+    <!-- PeerJS Library for P2P Multiplayer -->
     <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
     <!-- Google Font: Jua & Noto Sans KR -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
     <script>
         tailwind.config = {
             theme: {
@@ -104,7 +105,7 @@
     </header>
 
     <!-- NOTIFICATION TOAST -->
-    <div id="toast" class="fixed top-20 left-1/2 transform -translate-x-1/2 bg-indigo-900 text-white px-4 py-2 rounded-full shadow-xl border border-indigo-500 z-50 opacity-0 pointer-events-none transition-opacity duration-300 flex items-center gap-2 text-sm font-bold">
+    <div id="toast" class="fixed top-20 left-1/2 transform -translate-x-1/2 bg-indigo-900 text-white px-4 py-2.5 rounded-full shadow-2xl border border-indigo-400 z-50 opacity-0 pointer-events-none transition-all duration-300 flex items-center gap-2 text-xs sm:text-sm font-bold max-w-[90vw] text-center">
         <span id="toastIcon">ℹ️</span>
         <span id="toastMessage">알림 메시지</span>
     </div>
@@ -176,8 +177,8 @@
                         <p class="text-xs text-indigo-300 mb-4 h-8">내가 방장이 되어 친구들을 초대합니다.</p>
                         <input id="hostNameInput" type="text" placeholder="방장 닉네임 (최대 6자)" maxlength="6" class="w-full bg-indigo-900/80 border border-indigo-600 rounded-xl px-3 py-2.5 text-center text-sm font-bold text-white mb-3 focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition placeholder-indigo-400">
                     </div>
-                    <button onclick="game.create4PRoom()" class="w-full bg-emerald-500 hover:bg-emerald-400 text-indigo-950 font-jua text-base py-3 rounded-xl transition font-bold shadow-lg">
-                        ✨ 방 만들기 & QR 생성
+                    <button id="createRoomBtn" onclick="game.create4PRoom()" class="w-full bg-emerald-500 hover:bg-emerald-400 text-indigo-950 font-jua text-base py-3 rounded-xl transition font-bold shadow-lg flex items-center justify-center gap-2">
+                        <span>✨ 방 만들기 & QR 생성</span>
                     </button>
                 </div>
 
@@ -190,8 +191,8 @@
                         <input id="joinNameInput" type="text" placeholder="내 닉네임 (최대 6자)" maxlength="6" class="w-full bg-indigo-900/80 border border-indigo-600 rounded-xl px-3 py-2 text-center text-sm font-bold text-white mb-2 focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition placeholder-indigo-400">
                         <input id="joinCodeInput" type="text" placeholder="방 코드 (예: 1234)" maxlength="4" class="w-full bg-indigo-900/80 border border-indigo-600 rounded-xl px-3 py-2 text-center font-mono text-lg font-bold text-yellow-300 tracking-widest uppercase mb-3 focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition placeholder-indigo-400">
                     </div>
-                    <button onclick="game.join4PRoom()" class="w-full bg-blue-500 hover:bg-blue-400 text-white font-jua text-base py-3 rounded-xl transition font-bold shadow-lg">
-                        🚀 참가하기
+                    <button id="joinRoomBtn" onclick="game.join4PRoom()" class="w-full bg-blue-500 hover:bg-blue-400 text-white font-jua text-base py-3 rounded-xl transition font-bold shadow-lg flex items-center justify-center gap-2">
+                        <span>🚀 참가하기</span>
                     </button>
                 </div>
             </div>
@@ -368,26 +369,16 @@
                         <span>남은 체력</span>
                     </div>
                     <div id="leaderboardList" class="flex flex-col gap-2">
-                        <!-- Dynamic Ranking List -->
+                        <!-- Dynamic Leaderboard Items -->
                     </div>
                 </div>
 
-                <!-- Award Badge Card -->
-                <div id="awardCard" class="bg-gradient-to-r from-amber-500/20 to-yellow-500/20 p-4 rounded-2xl border border-yellow-500/30 max-w-md mx-auto mb-8 flex items-center gap-4 text-left shadow-lg backdrop-blur-sm">
-                    <div class="text-4xl filter drop-shadow" id="badgeIcon">🎖️</div>
-                    <div>
-                        <div class="text-[10px] text-yellow-400 font-bold tracking-wider mb-0.5">획득한 맞춤법 칭호</div>
-                        <div id="badgeTitle" class="text-lg sm:text-xl font-jua text-white mb-1">세종대왕의 후예</div>
-                        <div id="badgeDesc" class="text-xs text-slate-200 leading-snug">모든 맞춤법을 완벽하게 마스터한 최고의 실력자!</div>
-                    </div>
-                </div>
-
-                <div class="flex flex-col sm:flex-row justify-center gap-3 max-w-md mx-auto">
-                    <button id="restartBtn" onclick="game.startBattle(gameState.mode)" class="flex-1 bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-indigo-950 font-jua text-base py-3.5 rounded-xl transition shadow-lg font-bold">
+                <div class="flex flex-col sm:flex-row gap-3 justify-center max-w-md mx-auto">
+                    <button onclick="game.restartCurrentMode()" class="bg-yellow-400 hover:bg-yellow-300 text-indigo-950 font-jua text-lg px-8 py-3.5 rounded-xl transition font-bold shadow-lg transform hover:scale-105">
                         🔄 다시 하기
                     </button>
-                    <button onclick="game.showHome()" class="flex-1 bg-indigo-800 hover:bg-indigo-700 text-white font-jua text-base py-3.5 rounded-xl transition border border-indigo-600 shadow-lg">
-                        🏠 메인 화면
+                    <button onclick="game.showHome()" class="bg-indigo-800 hover:bg-indigo-700 text-white font-jua text-lg px-8 py-3.5 rounded-xl transition border border-indigo-600">
+                        🏠 처음으로
                     </button>
                 </div>
             </div>
@@ -396,1017 +387,1191 @@
     </main>
 
     <!-- FOOTER -->
-    <footer class="w-full text-center py-4 text-[11px] text-indigo-400/60 border-t border-indigo-900/50 z-10 relative">
-        <p>초등학교 6학년 국어 맞춤법 서바이벌 대결 게임</p>
+    <footer class="w-full max-w-5xl mx-auto px-4 py-4 text-center text-xs text-indigo-300/70 z-10 relative">
+        <p>© 초등 6학년 국어 맞춤법 서바이벌 배틀 | 세종대왕 한글 지킴이</p>
     </footer>
 
-    <!-- GAME LOGIC SCRIPT -->
     <script>
-        // --- 1. WEB AUDIO API SYNTHESIZER ---
-        let isSoundEnabled = true;
-        let audioCtx = null;
-
-        function getAudioContext() {
-            if (!audioCtx) {
-                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-                if (AudioContextClass) audioCtx = new AudioContextClass();
+        /* SOUND SYNTHESIS ENGINE (Web Audio API) */
+        class SoundEngine {
+            constructor() {
+                this.ctx = null;
+                this.enabled = true;
             }
-            if (audioCtx && audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
-            return audioCtx;
-        }
 
-        function playSound(type) {
-            if (!isSoundEnabled) return;
-            try {
-                const ctx = getAudioContext();
-                if (!ctx) return;
-
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
-                osc.connect(gain);
-                gain.connect(ctx.destination);
-
-                const now = ctx.currentTime;
-
-                if (type === 'select') {
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(600, now);
-                    osc.frequency.exponentialRampToValueAtTime(800, now + 0.08);
-                    gain.gain.setValueAtTime(0.15, now);
-                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
-                    osc.start(now);
-                    osc.stop(now + 0.08);
-                } else if (type === 'correct') {
-                    osc.type = 'triangle';
-                    osc.frequency.setValueAtTime(523.25, now); // C5
-                    osc.frequency.setValueAtTime(659.25, now + 0.1); // E5
-                    osc.frequency.setValueAtTime(783.99, now + 0.2); // G5
-                    gain.gain.setValueAtTime(0.2, now);
-                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
-                    osc.start(now);
-                    osc.stop(now + 0.35);
-                } else if (type === 'wrong') {
-                    osc.type = 'sawtooth';
-                    osc.frequency.setValueAtTime(180, now);
-                    osc.frequency.linearRampToValueAtTime(110, now + 0.25);
-                    gain.gain.setValueAtTime(0.25, now);
-                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
-                    osc.start(now);
-                    osc.stop(now + 0.25);
-                } else if (type === 'heal') {
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(400, now);
-                    osc.frequency.exponentialRampToValueAtTime(880, now + 0.2);
-                    gain.gain.setValueAtTime(0.2, now);
-                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
-                    osc.start(now);
-                    osc.stop(now + 0.25);
+            init() {
+                if (!this.ctx) {
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    if (AudioCtx) {
+                        this.ctx = new AudioCtx();
+                    }
                 }
-            } catch (e) {
-                console.warn('Audio play error:', e);
+            }
+
+            play(type) {
+                if (!this.enabled) return;
+                this.init();
+                if (!this.ctx) return;
+
+                if (this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+
+                const now = this.ctx.currentTime;
+
+                switch (type) {
+                    case 'click': {
+                        const osc = this.ctx.createOscillator();
+                        const gain = this.ctx.createGain();
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(600, now);
+                        osc.frequency.exponentialRampToValueAtTime(800, now + 0.05);
+                        gain.gain.setValueAtTime(0.2, now);
+                        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+                        osc.connect(gain);
+                        gain.connect(this.ctx.destination);
+                        osc.start(now);
+                        osc.stop(now + 0.05);
+                        break;
+                    }
+                    case 'correct': {
+                        const notes = [523.25, 659.25, 783.99]; // C5, E5, G5
+                        notes.forEach((freq, idx) => {
+                            const osc = this.ctx.createOscillator();
+                            const gain = this.ctx.createGain();
+                            osc.type = 'triangle';
+                            osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+                            gain.gain.setValueAtTime(0.25, now + idx * 0.08);
+                            gain.gain.exponentialRampToValueAtTime(0.01, now + idx * 0.08 + 0.2);
+                            osc.connect(gain);
+                            gain.connect(this.ctx.destination);
+                            osc.start(now + idx * 0.08);
+                            osc.stop(now + idx * 0.08 + 0.2);
+                        });
+                        break;
+                    }
+                    case 'wrong': {
+                        const osc = this.ctx.createOscillator();
+                        const gain = this.ctx.createGain();
+                        osc.type = 'sawtooth';
+                        osc.frequency.setValueAtTime(220, now);
+                        osc.frequency.linearRampToValueAtTime(130, now + 0.3);
+                        gain.gain.setValueAtTime(0.3, now);
+                        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                        osc.connect(gain);
+                        gain.connect(this.ctx.destination);
+                        osc.start(now);
+                        osc.stop(now + 0.3);
+                        break;
+                    }
+                    case 'hit': {
+                        const osc = this.ctx.createOscillator();
+                        const gain = this.ctx.createGain();
+                        osc.type = 'square';
+                        osc.frequency.setValueAtTime(150, now);
+                        osc.frequency.exponentialRampToValueAtTime(40, now + 0.2);
+                        gain.gain.setValueAtTime(0.4, now);
+                        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+                        osc.connect(gain);
+                        gain.connect(this.ctx.destination);
+                        osc.start(now);
+                        osc.stop(now + 0.2);
+                        break;
+                    }
+                    case 'victory': {
+                        const melody = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+                        melody.forEach((freq, i) => {
+                            const osc = this.ctx.createOscillator();
+                            const gain = this.ctx.createGain();
+                            osc.type = 'triangle';
+                            osc.frequency.setValueAtTime(freq, now + i * 0.12);
+                            gain.gain.setValueAtTime(0.3, now + i * 0.12);
+                            gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.12 + 0.35);
+                            osc.connect(gain);
+                            gain.connect(this.ctx.destination);
+                            osc.start(now + i * 0.12);
+                            osc.stop(now + i * 0.12 + 0.35);
+                        });
+                        break;
+                    }
+                }
             }
         }
 
-        // --- 2. QUIZ DATABASE ---
+        const audio = new SoundEngine();
+
+        /* KOREAN SPELLING QUIZ DATABASE (초등 6학년 필수) */
         const QUIZ_DATABASE = [
-            { category: "혼동하기 쉬운 말", sentence: "선생님, 내일 학교 끝나고 다시 ( ____ )!", options: ["봬요", "뵈요"], answer: 0, explanation: "'봬요'는 '뵈어'가 줄어든 형태입니다. '뵈요'는 틀린 표기입니다.", tip: "'해요'를 넣어서 자연스러우면 '봬요'입니다. ('하요' X -> '해요' O -> '봬요')" },
-            { category: "동사 맞춤법", sentence: "열심히 공부해서 문제를 모두 ( ____ )!", options: ["맞혔다", "맞췄다"], answer: 0, explanation: "정답을 적중시키는 것은 '맞히다'가 올바른 표현입니다.", tip: "'맞히다'는 정답/화살을 적중시킬 때, '맞추다'는 서로 비교하거나 조각을 합칠 때 씁니다." },
-            { category: "어휘와 표기", sentence: "청소를 시작하니 방이 ( ____ ) 깨끗해졌다.", options: ["금세", "금새"], answer: 0, explanation: "'금세'는 '금시에'가 줄어든 말로, '금세'로 적어야 합니다.", tip: "'금시에'를 줄여 발음해 보세요. '금세'가 됩니다." },
-            { category: "부정 표현", sentence: "그는 오늘 밥을 먹지 ( ____ ).", options: ["않았다", "안았다"], answer: 0, explanation: "동사 어간 뒤에 붙어 부정을 나타내는 보조 용언은 '않다'입니다.", tip: "'아니하-'를 넣어서 말이 되면 '않-', '아니'를 넣어서 말이 되면 '안'을 씁니다. (먹지 아니하였다 -> 않았다)" },
-            { category: "의미 구별", sentence: "오늘따라 ( ____ ) 기분이 좋다.", options: ["왠지", "웬지"], answer: 0, explanation: "'왜 그런지 모르게'라는 뜻의 부사는 '왠지'가 맞습니다.", tip: "'왠지'만 '왜'에서 왔고, 나머지는 모두 '웬'을 씁니다. (웬일, 웬 사람)" },
-            { category: "조사 맞춤법", sentence: "학생( ____ ) 마땅히 공부를 해야 한다.", options: ["으로서", "으로써"], answer: 0, explanation: "지위나 신분, 자격을 나타낼 때는 격조사 '-로서'를 씁니다.", tip: "사람의 자격, 신분은 '로서', 도구, 수단, 방법은 '으로써'를 기억하세요." },
-            { category: "명사 맞춤법", sentence: "부장님께 서류 ( ____ )를 올렸다.", options: ["결재", "결제"], answer: 0, explanation: "상관에게 안건을 허락받는 것은 '결재'입니다.", tip: "서류에 서명하는 것은 '결재(裁)', 돈을 지불하는 것은 '결제(濟)'입니다." },
-            { category: "부사 맞춤법", sentence: "선을 ( ____ ) 그어라.", options: ["반듯이", "반드시"], answer: 0, explanation: "비뚤어지지 않고 바르게라는 뜻은 '반듯이'입니다.", tip: "'반듯하다'라는 원래 뜻이 살아있으면 '반듯이', 꼭 틀림없이의 뜻이면 '반드시'입니다." },
-            { category: "발음과 표기", sentence: "김치가 알맞게 잘 ( ____ ).", options: ["익었대", "익었데"], answer: 0, explanation: "남의 말을 전달할 때는 '-대'를 씁니다.", tip: "내가 직접 경험한 것은 '-데', 남에게 들은 것은 '-대'('다고 해'의 준말)입니다." },
-            { category: "혼동 어휘", sentence: "병이 씻은 듯이 ( ____ ).", options: ["나았다", "낳았다"], answer: 0, explanation: "병이나 상처가 고쳐지는 것은 '낫다(나았다)'입니다.", tip: "'낳다'는 아기나 알을 몸 밖으로 내놓을 때 씁니다." },
-            { category: "어간과 어미", sentence: "문을 꽉 ( ____ )!", options: ["잠가라", "잠궈라"], answer: 0, explanation: "기본형 '잠그다'에 '-아'가 결합하면 '잠가'가 됩니다.", tip: "기본형이 '잠그다'이므로 으탈락이 일어나 '잠가'가 되는 것이 맞습니다." },
-            { category: "혼동 어휘", sentence: "시간이 없으니 ( ____ ) 서둘러라.", options: ["어지간히", "어지간이"], answer: 0, explanation: "부사 파생 접미사 '-히'가 결합하여 '어지간히'가 됩니다.", tip: "발음이 [히]로 분명히 나면 '-히'로 적습니다." }
+            {
+                category: "자주 틀리는 맞춤법",
+                sentence: "선생님, 내일 학교에서 또 ( ___ )!",
+                options: ["봬요", "뵈요"],
+                correct: 0,
+                explanation: "'봬요'는 '뵈어요'의 줄임말입니다. '뵈요'는 잘못된 표기이며 '봬요'가 맞습니다.",
+                tip: "'하'를 넣어서 어색하면 '뵈', '해'를 넣어서 자연스러우면 '봬'! (해요 -> 봬요)"
+            },
+            {
+                category: "헷갈리는 어휘",
+                sentence: "퀴즈 대회에서 마침내 정답을 ( ___ ).",
+                options: ["맞혔다", "맞췄다"],
+                correct: 0,
+                explanation: "정답을 적중시키는 것은 '맞히다'입니다. 서로 견주거나 맞닿게 하는 것은 '맞추다'입니다.",
+                tip: "화살을 표적에 쏘아 적중시키는 것처럼 답을 단번에 알아내면 '맞히다'!"
+            },
+            {
+                category: "부정 표현",
+                sentence: "숙제를 ( ___ ) 하고 놀면 마음이 불편해요.",
+                options: ["안", "않"],
+                correct: 0,
+                explanation: "'안'은 '아니'의 줄임말이고, '않'은 '아니하'의 줄임말입니다. 뒤의 동사를 직접 꾸밀 땐 '안'입니다.",
+                tip: "'아니'를 넣어보아 자연스러우면 '안'! (아니 하고 -> 안 하고)"
+            },
+            {
+                category: "건강/상태 표현",
+                sentence: "독감에 걸렸던 친구의 병이 빨리 ( ___ ) 좋겠다.",
+                options: ["낫기를", "낳기를", "낮기를"],
+                correct: 0,
+                explanation: "병이나 상처가 고쳐지는 것은 '낫다'입니다. 아이를 출산하는 것은 '낳다', 높이가 낮은 것은 '낮다'입니다.",
+                tip: "병이 고쳐질 땐 '낫다', 아기를 낳을 땐 '낳다'!"
+            },
+            {
+                category: "선택과 과거",
+                sentence: "사과( ___ ) 배( ___ ) 마음대로 골라 먹어라.",
+                options: ["든지 / 든지", "던지 / 던지"],
+                correct: 0,
+                explanation: "물건이나 행동을 선택할 때는 '-든지'를 사용하고, 과거를 회상할 때는 '-던지'를 사용합니다.",
+                tip: "어떤 것을 '선택'할 때는 '든지'! (지나간 일을 말할 때는 '던지')"
+            },
+            {
+                category: "접착과 우편",
+                sentence: "친구에게 줄 편지를 우체통에 ( ___ ).",
+                options: ["부쳤다", "붙였다"],
+                correct: 0,
+                explanation: "우편이나 소포를 보낼 때는 '부치다', 풀이나 테이프로 떨어지지 않게 고정하는 것은 '붙이다'입니다.",
+                tip: "우표를 풀로 '붙여서', 우체통에 편지를 '부친다'!"
+            },
+            {
+                category: "상황 표현",
+                sentence: "오늘 약속 시간에 늦으면 ( ___ ) 해야 하지?",
+                options: ["어떻게", "어떡해"],
+                correct: 0,
+                explanation: "문장 중간에서 수식할 때는 '어떻게'가 맞습니다. '어떡해'는 '어떻게 해'의 줄임말로 문장 끝에 쓰입니다.",
+                tip: "문장 중간에는 '어떻게', 문장 끝에서 서술할 때는 '어떡해'!"
+            },
+            {
+                category: "지식과 방향",
+                sentence: "선생님께서 친절하게 수학 공식을 ( ___ ) 주셨다.",
+                options: ["가르쳐", "가리켜"],
+                correct: 0,
+                explanation: "지식이나 방법을 알게 해주는 것은 '가르치다', 손가락이나 물건으로 방향/ 대상을 짚는 것은 '가리키다'입니다.",
+                tip: "공부나 학문은 '가르치다', 손가락으로 가리키는 것은 '가리키다'!"
+            },
+            {
+                category: "차이와 오류",
+                sentence: "너와 나의 생각이 서로 ( ___ ).",
+                options: ["다르다", "틀리다"],
+                correct: 0,
+                explanation: "서로 같지 않은 것은 '다르다'입니다. 계산이나 정답이 올바르지 않은 것은 '틀리다'입니다.",
+                tip: "Differ(같지 않다) = 다르다, Wrong(옳지 않다) = 틀리다!"
+            },
+            {
+                category: "자격과 수단",
+                sentence: "학급 반장( ___ ) 책임감을 가지고 노력하겠다.",
+                options: ["로서", "로써"],
+                correct: 0,
+                explanation: "지위나 자격을 나타낼 때는 '-로서', 도구나 수단/재료를 나타낼 때는 '-로써'를 씁니다.",
+                tip: "사람의 '자격'에는 -로서! (도구나 재료에는 -로써)"
+            },
+            {
+                category: "간접 전해 듣기",
+                sentence: "민우가 다음 주에 전학을 간( ___ ).",
+                options: ["대", "데"],
+                correct: 0,
+                explanation: "남에게 들은 이야기를 전달할 때는 '-대', 자신이 직접 경험한 사실을 말할 때는 '-데'를 사용합니다.",
+                tip: "남이 말한 내용을 전달할 때는 '~고 해'의 의미인 '-대'!"
+            },
+            {
+                category: "체언 받침 연결",
+                sentence: "저는 용감하고 씩씩한 초등학교 6학년( ___ ).",
+                options: ["이에요", "예요"],
+                correct: 0,
+                explanation: "받침이 있는 단어 뒤에는 '이에요', 받침이 없는 단어 뒤에는 '예요'가 붙습니다.",
+                tip: "6학년(받침 N) -> 이에요! / 친구(받침 X) -> 예요!"
+            },
+            {
+                category: "바른 활용형",
+                sentence: "거센 바람이 불어 바다에 ( ___ ) 파도가 일었다.",
+                options: ["거친", "거칠은"],
+                correct: 0,
+                explanation: "'거칠다'의 관형사형은 '거친'이 바른 표현입니다. '거칠은'은 잘못된 활용입니다.",
+                tip: "녹슬다 -> 녹슨 / 거칠다 -> 거친!"
+            },
+            {
+                category: "색채와 관찰",
+                sentence: "노을이 질 때 하늘이 붉은빛을 ( ___ ) 있었다.",
+                options: ["띠고", "띄고"],
+                correct: 0,
+                explanation: "색채나 성질, 감정을 가질 때는 '띠다'를 씁니다. 눈에 띄거나 띄어쓰기는 '띄다'입니다.",
+                tip: "색깔이나 미소를 함유할 때는 '띠다', 눈에 보일 때는 '띄다'!"
+            },
+            {
+                category: "공간과 동작",
+                sentence: "저 산 ( ___ ) 동네에는 어떤 사람들이 살까?",
+                options: ["너머", "넘어"],
+                correct: 0,
+                explanation: "높은 경계나 장애물 뒤의 장소를 뜻할 때는 명사 '너머', 넘어가는 동작은 동사 '넘어'입니다.",
+                tip: "장소나 공간을 뜻할 때는 '너머'! (담 너머, 산 너머)"
+            }
         ];
 
-        // --- 3. GAME STATE & CONSTANTS ---
-        const MAX_HP = 100;
-        const TIME_LIMIT = 10; // seconds per turn
-        const DAMAGE_AMT = 30;
-        const HEAL_AMT = 15;
-        
-        let gameState = {
-            mode: '', // '1p', '2p', '4p'
-            players: [], // { id, name, hp, isAlive, isAI }
-            currentRound: 0,
-            maxRounds: 10,
-            questionPool: [],
-            currentQuestion: null,
-            currentPlayerIdx: 0,
-            timer: null,
-            timeLeft: 0,
-            
-            // Multiplayer specifics
-            roomCode: null,
-            isHost: false,
-            myId: null,
-            answers: {}, // map of id -> selected option index
-        };
-
-        // --- 4. UTILITY HELPER FUNCTIONS ---
-        function shuffle(array) {
-            const arr = [...array];
-            for (let i = arr.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [arr[i], arr[j]] = [arr[j], arr[i]];
-            }
-            return arr;
-        }
-
-        function hideAllScreens() {
-            ['startScreen', 'roomSetupScreen', 'lobbyScreen', 'battleScreen', 'resultScreen'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) {
-                    el.classList.add('hidden');
-                    el.classList.remove('block', 'flex');
-                }
-            });
-        }
-
-        function showToast(message) {
-            const toast = document.getElementById('toast');
-            const msgEl = document.getElementById('toastMessage');
-            if (!toast || !msgEl) return;
-            
-            msgEl.innerText = message;
-            toast.classList.remove('opacity-0', 'pointer-events-none');
-            
-            clearTimeout(toast._timeout);
-            toast._timeout = setTimeout(() => {
-                toast.classList.add('opacity-0', 'pointer-events-none');
-            }, 2500);
-        }
-
-        function buildPlayerCards() {
-            const grid = document.getElementById('playersGrid');
-            if (!grid) return;
-            grid.innerHTML = '';
-
-            const avatars = ['👑', '😎', '🤠', '🦊'];
-
-            gameState.players.forEach((p, idx) => {
-                const isCurrentTurn = (gameState.mode !== '4p' && idx === gameState.currentPlayerIdx);
-                const hpPercent = Math.max(0, (p.hp / MAX_HP) * 100);
-                const avatar = p.isAI ? '🤖' : (avatars[idx % avatars.length]);
-
-                const card = document.createElement('div');
-                card.id = `playerCard-${idx}`;
-                card.className = `bg-indigo-950/70 p-2.5 rounded-xl border relative transition-all duration-300 flex flex-col justify-between ${
-                    isCurrentTurn ? 'border-yellow-400 ring-2 ring-yellow-400/50 scale-102' : 'border-indigo-700/50'
-                } ${!p.isAlive ? 'grayscale opacity-50' : ''}`;
-
-                card.innerHTML = `
-                    <div class="flex items-center gap-2 mb-1">
-                        <span class="text-xl sm:text-2xl">${avatar}</span>
-                        <div class="flex-1 overflow-hidden">
-                            <div class="text-xs sm:text-sm font-bold text-white truncate">${p.name}</div>
-                            <div class="text-[10px] text-indigo-300 font-mono">${Math.max(0, p.hp)} HP</div>
-                        </div>
-                    </div>
-                    <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden border border-indigo-900">
-                        <div id="hpFill-${idx}" class="hp-bar-fill h-full ${
-                            hpPercent > 50 ? 'bg-emerald-500' : (hpPercent > 20 ? 'bg-amber-500' : 'bg-red-500')
-                        }" style="width: ${hpPercent}%"></div>
-                    </div>
-                    ${!p.isAlive ? '<div class="absolute inset-0 bg-red-900/40 flex items-center justify-center rounded-xl font-jua text-red-300 transform rotate-12 text-base drop-shadow-md">탈락</div>' : ''}
-                `;
-                grid.appendChild(card);
-            });
-        }
-
-        // --- 5. PEERJS MULTIPLAYER NETWORKING ENGINE ---
-        let peerInstance = null;
-        let hostConn = null;
-        let guestConns = {};
-
-        function initPeerAsHost(roomCode, onOpenCallback, onErrorCallback) {
-            if (peerInstance) peerInstance.destroy();
-            guestConns = {};
-            
-            const peerId = `kor6th-spelling-${roomCode}`;
-            peerInstance = new Peer(peerId, { debug: 1 });
-
-            peerInstance.on('open', (id) => {
-                if (onOpenCallback) onOpenCallback(id);
-            });
-
-            peerInstance.on('connection', (conn) => {
-                conn.on('open', () => {
-                    guestConns[conn.peer] = conn;
-                });
-
-                conn.on('data', (data) => {
-                    handleHostReceivedData(conn, data);
-                });
-
-                conn.on('close', () => {
-                    delete guestConns[conn.peer];
-                    gameState.players = gameState.players.filter(p => p.id !== conn.peer);
-                    broadcastToGuests({ type: 'LOBBY_UPDATE', players: gameState.players });
-                    updateLobbyUI();
-                });
-            });
-
-            peerInstance.on('error', (err) => {
-                console.warn('Peer host error:', err);
-                if (onErrorCallback) onErrorCallback(err);
-            });
-        }
-
-        function initPeerAsGuest(roomCode, joinName, onSuccessCallback, onErrorCallback) {
-            if (peerInstance) peerInstance.destroy();
-            
-            peerInstance = new Peer();
-
-            peerInstance.on('open', (myPeerId) => {
-                gameState.myId = myPeerId;
-                const hostPeerId = `kor6th-spelling-${roomCode}`;
-                hostConn = peerInstance.connect(hostPeerId, { reliable: true });
-
-                hostConn.on('open', () => {
-                    hostConn.send({ type: 'JOIN', name: joinName });
-                    if (onSuccessCallback) onSuccessCallback();
-                });
-
-                hostConn.on('data', (data) => {
-                    handleGuestReceivedData(data);
-                });
-
-                hostConn.on('close', () => {
-                    showToast("방장과 연결이 끊어졌습니다.");
-                    game.showHome();
-                });
-
-                hostConn.on('error', (err) => {
-                    if (onErrorCallback) onErrorCallback(err);
-                });
-            });
-
-            peerInstance.on('error', (err) => {
-                console.warn('Peer guest error:', err);
-                if (onErrorCallback) onErrorCallback(err);
-            });
-        }
-
-        function broadcastToGuests(msg) {
-            Object.values(guestConns).forEach(conn => {
-                if (conn && conn.open) conn.send(msg);
-            });
-        }
-
-        function handleHostReceivedData(conn, data) {
-            if (data.type === 'JOIN') {
-                if (gameState.players.length >= 4) {
-                    conn.send({ type: 'ERROR', message: '방이 꽉 찼습니다 (최대 4명).' });
-                    return;
-                }
-                const newPlayer = { id: conn.peer, name: data.name || '학생', hp: MAX_HP, isAlive: true };
-                if (!gameState.players.some(p => p.id === conn.peer)) {
-                    gameState.players.push(newPlayer);
-                }
-                broadcastToGuests({ type: 'LOBBY_UPDATE', players: gameState.players });
-                updateLobbyUI();
-            } else if (data.type === 'SUBMIT_ANSWER') {
-                gameState.answers[conn.peer] = data.answerIdx;
-                checkAllAnsweredHost();
-            }
-        }
-
-        function handleGuestReceivedData(data) {
-            if (data.type === 'LOBBY_UPDATE') {
-                gameState.players = data.players;
-                updateLobbyUI();
-            } else if (data.type === 'START_GAME') {
-                gameState.players = data.players;
-                gameState.currentRound = data.round;
-                gameState.currentQuestion = QUIZ_DATABASE[data.questionIdx];
+        /* VISUAL FX CANVASES */
+        class FXEngine {
+            constructor() {
+                this.bgCanvas = document.getElementById('bgCanvas');
+                this.bgCtx = this.bgCanvas ? this.bgCanvas.getContext('2d') : null;
+                this.confettiCanvas = document.getElementById('confettiCanvas');
+                this.confettiCtx = this.confettiCanvas ? this.confettiCanvas.getContext('2d') : null;
+                this.attackCanvas = document.getElementById('attackCanvas');
+                this.attackCtx = this.attackCanvas ? this.attackCanvas.getContext('2d') : null;
                 
-                hideAllScreens();
-                document.getElementById('battleScreen').classList.remove('hidden');
-                document.getElementById('battleScreen').classList.add('flex');
-                document.getElementById('multiplayerStatus').classList.remove('hidden');
-                document.getElementById('explanationBox').classList.add('hidden');
-                document.getElementById('quizContent').classList.remove('hidden', 'opacity-0');
-                document.getElementById('waitingOthersOverlay').classList.add('hidden');
-
-                document.getElementById('turnBadge').innerText = `🔥 모두의 턴!`;
-                document.getElementById('stageProgress').innerText = `라운드 ${data.round}`;
-
-                buildPlayerCards();
-                renderQuestionUI(gameState.currentQuestion);
-                startTimer(TIME_LIMIT, () => {});
-            } else if (data.type === 'ROUND_RESULT') {
-                clearInterval(gameState.timer);
-                document.getElementById('timerBar').style.width = '0%';
-                document.getElementById('waitingOthersOverlay').classList.add('hidden');
-
-                gameState.players = data.players;
-                updatePlayerHPUI();
-
-                const myAns = data.answers[gameState.myId];
-                const isCorrect = (myAns === gameState.currentQuestion.answer);
-
-                if (isCorrect) playSound('correct'); else playSound('wrong');
-                showExplanationUI(isCorrect, gameState.currentQuestion, myAns === undefined);
-            } else if (data.type === 'GAME_OVER') {
-                gameState.players = data.players;
-                endGameLocal();
-            } else if (data.type === 'ERROR') {
-                showToast(data.message);
+                this.particles = [];
+                this.confettis = [];
+                this.initResizing();
             }
-        }
 
-        function updateLobbyUI() {
-            document.getElementById('playerCountText').innerText = gameState.players.length;
-            const list = document.getElementById('playerLobbyList');
-            if (!list) return;
-            list.innerHTML = '';
-            const avatars = ['👑', '😎', '🤠', '🦊'];
-            gameState.players.forEach((p, i) => {
-                const isMe = p.id === gameState.myId;
-                const avatar = avatars[i % avatars.length];
-                list.innerHTML += `
-                    <div class="flex items-center gap-3 bg-indigo-900/40 p-2.5 rounded-lg border border-indigo-700/50">
-                        <span class="text-2xl">${avatar}</span>
-                        <span class="font-bold text-white text-sm flex-1">${p.name}</span>
-                        ${isMe ? '<span class="text-[10px] bg-blue-500 text-white px-2 py-0.5 rounded-full font-bold shadow">ME</span>' : ''}
-                    </div>
-                `;
-            });
-        }
-
-        function updatePlayerHPUI() {
-            gameState.players.forEach((p, idx) => {
-                const hpFill = document.getElementById(`hpFill-${idx}`);
-                const card = document.getElementById(`playerCard-${idx}`);
-                if (hpFill && card) {
-                    const hpPercent = Math.max(0, (p.hp / MAX_HP) * 100);
-                    hpFill.style.width = `${hpPercent}%`;
-                    
-                    hpFill.className = `hp-bar-fill h-full ${hpPercent > 50 ? 'bg-emerald-500' : (hpPercent > 20 ? 'bg-amber-500' : 'bg-red-500')}`;
-                    
-                    const hpTextEl = card.querySelector('div.font-mono');
-                    if (hpTextEl) hpTextEl.innerText = `${Math.max(0, p.hp)} HP`;
-                    
-                    if (!p.isAlive && !card.innerHTML.includes('탈락')) {
-                        card.classList.add('grayscale', 'opacity-50');
-                        card.innerHTML += '<div class="absolute inset-0 bg-red-900/40 flex items-center justify-center rounded-xl font-jua text-red-300 transform rotate-12 text-base drop-shadow-md">탈락</div>';
+            initResizing() {
+                const resize = () => {
+                    if (this.bgCanvas && this.bgCanvas.parentElement) {
+                        this.bgCanvas.width = this.bgCanvas.parentElement.clientWidth;
+                        this.bgCanvas.height = this.bgCanvas.parentElement.clientHeight;
                     }
-                }
-            });
-        }
-
-        // --- 6. CORE GAME LOGIC (1P & 2P) ---
-        function initializeLocalGame(mode) {
-            gameState.mode = mode;
-            gameState.currentRound = 0;
-            gameState.maxRounds = 10;
-            gameState.questionPool = shuffle([...QUIZ_DATABASE]);
-            gameState.answers = {};
-            
-            const myId = 'local_user';
-            gameState.myId = myId;
-
-            if (mode === '1p') {
-                gameState.players = [
-                    { id: myId, name: '플레이어', hp: MAX_HP, isAlive: true, isAI: false },
-                    { id: 'ai', name: '세종봇(AI)', hp: MAX_HP, isAlive: true, isAI: true }
-                ];
-            } else if (mode === '2p') {
-                gameState.players = [
-                    { id: 'p1', name: '도전자 1', hp: MAX_HP, isAlive: true, isAI: false },
-                    { id: 'p2', name: '도전자 2', hp: MAX_HP, isAlive: true, isAI: false }
-                ];
-                gameState.myId = 'p1';
-            }
-
-            gameState.currentPlayerIdx = 0;
-            
-            hideAllScreens();
-            document.getElementById('battleScreen').classList.remove('hidden');
-            document.getElementById('battleScreen').classList.add('flex');
-            document.getElementById('multiplayerStatus').classList.add('hidden');
-            
-            buildPlayerCards();
-            startNextRoundLocal();
-        }
-
-        function startNextRoundLocal() {
-            const alivePlayers = gameState.players.filter(p => p.isAlive);
-            if (alivePlayers.length <= 1 || gameState.currentRound >= gameState.maxRounds) {
-                endGameLocal();
-                return;
-            }
-
-            while(!gameState.players[gameState.currentPlayerIdx].isAlive) {
-                gameState.currentPlayerIdx = (gameState.currentPlayerIdx + 1) % gameState.players.length;
-            }
-
-            gameState.currentRound++;
-            gameState.currentQuestion = gameState.questionPool.pop();
-            if(!gameState.currentQuestion) {
-                gameState.questionPool = shuffle([...QUIZ_DATABASE]);
-                gameState.currentQuestion = gameState.questionPool.pop();
-            }
-
-            document.getElementById('explanationBox').classList.add('hidden');
-            document.getElementById('quizContent').classList.remove('hidden', 'opacity-0');
-            
-            const curP = gameState.players[gameState.currentPlayerIdx];
-            document.getElementById('turnBadge').innerText = `👉 ${curP.name}의 턴!`;
-            document.getElementById('stageProgress').innerText = `라운드 ${gameState.currentRound} / ${gameState.maxRounds}`;
-
-            buildPlayerCards();
-            renderQuestionUI(gameState.currentQuestion);
-
-            startTimer(TIME_LIMIT, () => handleTimeoutLocal());
-
-            if (curP.isAI) {
-                setTimeout(() => {
-                    if (gameState.timer) {
-                        const isCorrect = Math.random() < 0.8;
-                        const ansIdx = isCorrect ? gameState.currentQuestion.answer : (1 - gameState.currentQuestion.answer);
-                        processAnswerLocal(ansIdx);
+                    if (this.confettiCanvas && this.confettiCanvas.parentElement) {
+                        this.confettiCanvas.width = this.confettiCanvas.parentElement.clientWidth;
+                        this.confettiCanvas.height = this.confettiCanvas.parentElement.clientHeight;
                     }
-                }, 1800 + Math.random() * 1500);
-            }
-        }
-
-        function renderQuestionUI(q) {
-            document.getElementById('questionCategory').innerText = q.category;
-            document.getElementById('questionText').innerHTML = q.sentence;
-            
-            const optsContainer = document.getElementById('optionsContainer');
-            optsContainer.innerHTML = '';
-            
-            const shuffledIndices = Math.random() > 0.5 ? [0, 1] : [1, 0];
-            
-            shuffledIndices.forEach(idx => {
-                const btn = document.createElement('button');
-                btn.className = "bg-indigo-800/80 hover:bg-indigo-700 text-white font-jua text-lg sm:text-xl py-4 sm:py-6 rounded-2xl transition border border-indigo-600/50 shadow-md flex items-center justify-center break-keep";
-                btn.innerText = q.options[idx];
-                
-                btn.onclick = () => {
-                    if (gameState.mode !== '4p' && gameState.players[gameState.currentPlayerIdx].isAI) return;
-                    
-                    if (gameState.mode === '4p') {
-                        submitAnswerMultiplayer(idx);
-                    } else {
-                        playSound('select');
-                        processAnswerLocal(idx);
+                    if (this.attackCanvas && this.attackCanvas.parentElement) {
+                        this.attackCanvas.width = this.attackCanvas.parentElement.clientWidth;
+                        this.attackCanvas.height = this.attackCanvas.parentElement.clientHeight;
                     }
                 };
-                optsContainer.appendChild(btn);
-            });
-        }
+                window.addEventListener('resize', resize);
+                setTimeout(resize, 100);
+            }
 
-        function startTimer(seconds, onTimeout) {
-            clearInterval(gameState.timer);
-            gameState.timeLeft = seconds;
-            const timerBar = document.getElementById('timerBar');
-            
-            timerBar.style.transition = 'none';
-            timerBar.style.width = '100%';
-            timerBar.className = 'h-full w-full relative bg-emerald-500';
-            
-            void timerBar.offsetWidth;
-            
-            timerBar.style.transition = `width ${seconds}s linear, background-color 1s`;
-            timerBar.style.width = '0%';
-            timerBar.classList.replace('bg-emerald-500', 'bg-red-500');
+            startBgParticles() {
+                if (!this.bgCtx) return;
+                this.particles = Array.from({ length: 25 }, () => ({
+                    x: Math.random() * (this.bgCanvas.width || 300),
+                    y: Math.random() * (this.bgCanvas.height || 300),
+                    r: Math.random() * 3 + 1,
+                    vx: (Math.random() - 0.5) * 0.5,
+                    vy: -Math.random() * 0.5 - 0.2,
+                    alpha: Math.random() * 0.6 + 0.2
+                }));
 
-            gameState.timer = setInterval(() => {
-                gameState.timeLeft--;
-                if (gameState.timeLeft <= 0) {
-                    clearInterval(gameState.timer);
-                    onTimeout();
-                }
-            }, 1000);
-        }
+                const loop = () => {
+                    if (!this.bgCtx) return;
+                    this.bgCtx.clearRect(0, 0, this.bgCanvas.width, this.bgCanvas.height);
+                    
+                    this.particles.forEach(p => {
+                        p.x += p.vx;
+                        p.y += p.vy;
+                        if (p.y < 0) p.y = this.bgCanvas.height;
+                        if (p.x < 0) p.x = this.bgCanvas.width;
+                        if (p.x > this.bgCanvas.width) p.x = 0;
 
-        function processAnswerLocal(selectedIdx) {
-            clearInterval(gameState.timer);
-            document.getElementById('timerBar').style.transition = 'none';
-            
-            const q = gameState.currentQuestion;
-            const isCorrect = (selectedIdx === q.answer);
-            const curPIdx = gameState.currentPlayerIdx;
-            
-            applyDamage(curPIdx, isCorrect);
-            showExplanationUI(isCorrect, q);
-            
-            gameState.currentPlayerIdx = (gameState.currentPlayerIdx + 1) % gameState.players.length;
-        }
+                        this.bgCtx.beginPath();
+                        this.bgCtx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                        this.bgCtx.fillStyle = `rgba(165, 180, 252, ${p.alpha})`;
+                        this.bgCtx.fill();
+                    });
+                    requestAnimationFrame(loop);
+                };
+                loop();
+            }
 
-        function handleTimeoutLocal() {
-            playSound('wrong');
-            const q = gameState.currentQuestion;
-            applyDamage(gameState.currentPlayerIdx, false);
-            showExplanationUI(false, q, true);
-            gameState.currentPlayerIdx = (gameState.currentPlayerIdx + 1) % gameState.players.length;
-        }
+            triggerAttackFx() {
+                if (!this.attackCtx) return;
+                const ctx = this.attackCtx;
+                const w = this.attackCanvas.width;
+                const h = this.attackCanvas.height;
 
-        // --- 7. DAMAGE & RESULT EVALUATION ---
-        function applyDamage(attackerIdx, isCorrect) {
-            if (isCorrect) {
-                playSound('correct');
-                
-                const attacker = gameState.players[attackerIdx];
-                if (attacker && attacker.isAlive) {
-                    attacker.hp = Math.min(MAX_HP, attacker.hp + HEAL_AMT);
-                    const attackerCard = document.getElementById(`playerCard-${attackerIdx}`);
-                    if (attackerCard) {
-                        attackerCard.classList.add('ring-4', 'ring-emerald-400');
-                        setTimeout(() => attackerCard.classList.remove('ring-4', 'ring-emerald-400'), 600);
+                ctx.clearRect(0, 0, w, h);
+                ctx.strokeStyle = '#ef4444';
+                ctx.lineWidth = 6;
+                ctx.shadowColor = '#f87171';
+                ctx.shadowBlur = 15;
+
+                ctx.beginPath();
+                ctx.moveTo(w * 0.2, h * 0.2);
+                ctx.lineTo(w * 0.8, h * 0.8);
+                ctx.moveTo(w * 0.8, h * 0.2);
+                ctx.lineTo(w * 0.2, h * 0.8);
+                ctx.stroke();
+
+                setTimeout(() => {
+                    ctx.clearRect(0, 0, w, h);
+                }, 300);
+            }
+
+            triggerConfetti() {
+                if (!this.confettiCtx) return;
+                const colors = ['#fde047', '#38bdf8', '#f43f5e', '#a855f7', '#4ade80'];
+                this.confettis = Array.from({ length: 80 }, () => ({
+                    x: this.confettiCanvas.width / 2,
+                    y: this.confettiCanvas.height / 2,
+                    vx: (Math.random() - 0.5) * 12,
+                    vy: -Math.random() * 10 - 4,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    size: Math.random() * 8 + 4,
+                    gravity: 0.25,
+                    alpha: 1
+                }));
+
+                const render = () => {
+                    if (!this.confettiCtx) return;
+                    this.confettiCtx.clearRect(0, 0, this.confettiCanvas.width, this.confettiCanvas.height);
+                    let active = false;
+
+                    this.confettis.forEach(c => {
+                        if (c.alpha <= 0) return;
+                        active = true;
+                        c.x += c.vx;
+                        c.y += c.vy;
+                        c.vy += c.gravity;
+                        c.alpha -= 0.015;
+
+                        this.confettiCtx.save();
+                        this.confettiCtx.globalAlpha = Math.max(0, c.alpha);
+                        this.confettiCtx.fillStyle = c.color;
+                        this.confettiCtx.fillRect(c.x, c.y, c.size, c.size);
+                        this.confettiCtx.restore();
+                    });
+
+                    if (active) {
+                        requestAnimationFrame(render);
                     }
-                    playSound('heal');
+                };
+                render();
+            }
+        }
+
+        /* GAME MASTER CONTROLLER */
+        class SpellingBattleGame {
+            constructor() {
+                this.mode = '1p'; // '1p', '2p', '4p'
+                this.players = [];
+                this.currentQuestionIndex = 0;
+                this.questions = [];
+                this.timer = null;
+                this.timeLeft = 15;
+                this.turnIndex = 0;
+                this.isAnsweringLocked = false;
+                
+                // PeerJS Multiplayer attributes
+                this.peer = null;
+                this.peerConnections = {}; // connId -> conn
+                this.roomCode = '';
+                this.isHost = false;
+                this.myPlayerId = '';
+                this.playerAnswersMap = {}; // pid -> answerIndex
+
+                this.fx = new FXEngine();
+                this.initUIElements();
+            }
+
+            initUIElements() {
+                this.screens = {
+                    start: document.getElementById('startScreen'),
+                    roomSetup: document.getElementById('roomSetupScreen'),
+                    lobby: document.getElementById('lobbyScreen'),
+                    battle: document.getElementById('battleScreen'),
+                    result: document.getElementById('resultScreen')
+                };
+                this.fx.startBgParticles();
+            }
+
+            showToast(msg, icon = 'ℹ️') {
+                const toast = document.getElementById('toast');
+                document.getElementById('toastMessage').textContent = msg;
+                document.getElementById('toastIcon').textContent = icon;
+                toast.classList.remove('opacity-0', 'pointer-events-none');
+                setTimeout(() => {
+                    toast.classList.add('opacity-0', 'pointer-events-none');
+                }, 2800);
+            }
+
+            toggleSound() {
+                audio.enabled = !audio.enabled;
+                const icon = document.getElementById('soundIcon');
+                const btn = document.getElementById('soundToggleBtn');
+                if (audio.enabled) {
+                    icon.textContent = '🔊';
+                    btn.classList.remove('opacity-60');
+                    this.showToast('효과음이 켜졌습니다.', '🔊');
+                } else {
+                    icon.textContent = '🔇';
+                    btn.classList.add('opacity-60');
+                    this.showToast('효과음이 꺼졌습니다.', '🔇');
+                }
+            }
+
+            hideAllScreens() {
+                Object.values(this.screens).forEach(s => s.classList.add('hidden'));
+                document.getElementById('explanationBox').classList.add('hidden');
+                document.getElementById('waitingOthersOverlay').classList.add('hidden');
+            }
+
+            showHome() {
+                audio.play('click');
+                this.stopTimer();
+                this.cleanupPeer();
+                this.hideAllScreens();
+                this.screens.start.classList.remove('hidden');
+            }
+
+            startBattle(mode) {
+                audio.play('click');
+                this.mode = mode;
+                this.currentQuestionIndex = 0;
+                this.questions = [...QUIZ_DATABASE].sort(() => Math.random() - 0.5).slice(0, 10);
+                
+                if (mode === '1p') {
+                    this.players = [
+                        { id: 'p1', name: '나 (학생)', hp: 100, maxHp: 100, avatar: '🎓', isAi: false },
+                        { id: 'bot', name: '세종봇 (AI)', hp: 100, maxHp: 100, avatar: '🤖', isAi: true }
+                    ];
+                } else if (mode === '2p') {
+                    this.players = [
+                        { id: 'p1', name: '플레이어 1', hp: 100, maxHp: 100, avatar: '🦁', isAi: false },
+                        { id: 'p2', name: '플레이어 2', hp: 100, maxHp: 100, avatar: '🐯', isAi: false }
+                    ];
                 }
 
-                let hitSomeone = false;
-                gameState.players.forEach((p, idx) => {
-                    if (idx !== attackerIdx && p.isAlive) {
-                        p.hp -= DAMAGE_AMT;
-                        hitSomeone = true;
-                        const card = document.getElementById(`playerCard-${idx}`);
+                this.hideAllScreens();
+                this.screens.battle.classList.remove('hidden');
+                this.screens.battle.classList.add('flex');
+                document.getElementById('multiplayerStatus').classList.add('hidden');
+
+                this.renderPlayersCards();
+                this.loadQuestion();
+            }
+
+            open4PSetup() {
+                audio.play('click');
+                this.hideAllScreens();
+                this.screens.roomSetup.classList.remove('hidden');
+            }
+
+            create4PRoom() {
+                audio.play('click');
+                const nameInput = document.getElementById('hostNameInput').value.trim() || '방장';
+                const createBtn = document.getElementById('createRoomBtn');
+                
+                this.isHost = true;
+                this.myPlayerId = 'host_' + Math.random().toString(36).substring(2, 7);
+                this.roomCode = Math.floor(1000 + Math.random() * 9000).toString();
+
+                this.players = [
+                    { id: this.myPlayerId, name: nameInput, hp: 100, maxHp: 100, avatar: '👑', isHost: true }
+                ];
+
+                createBtn.disabled = true;
+                createBtn.classList.add('opacity-50');
+                this.showToast('방을 생성하는 중입니다...', '⏳');
+
+                this.initPeerJSHost(nameInput);
+            }
+
+            initPeerJSHost(nameInput) {
+                const peerId = 'spellmaster-' + this.roomCode;
+                const createBtn = document.getElementById('createRoomBtn');
+
+                // STUN servers configuration for Google Cloud & fallback
+                const peerConfig = {
+                    debug: 1,
+                    config: {
+                        iceServers: [
+                            { urls: 'stun:stun.l.google.com:19302' },
+                            { urls: 'stun:stun1.l.google.com:19302' },
+                            { urls: 'stun:stun2.l.google.com:19302' },
+                            { urls: 'stun:stun3.l.google.com:19302' }
+                        ]
+                    }
+                };
+
+                try {
+                    if (this.peer) {
+                        try { this.peer.destroy(); } catch (e) {}
+                    }
+
+                    this.peer = new Peer(peerId, peerConfig);
+
+                    this.peer.on('open', (id) => {
+                        createBtn.disabled = false;
+                        createBtn.classList.remove('opacity-50');
+                        this.setupLobbyUI();
+                        this.showToast('방 생성이 완료되었습니다! 친구들에게 코드를 알려주세요.', '🎉');
+                    });
+
+                    this.peer.on('connection', (conn) => {
+                        conn.on('data', (data) => {
+                            this.handleHostReceivedData(conn, data);
+                        });
+
+                        conn.on('close', () => {
+                            this.players = this.players.filter(p => p.connId !== conn.peer);
+                            this.broadcastRoomData();
+                            this.updateLobbyPlayerList();
+                        });
+                    });
+
+                    this.peer.on('error', (err) => {
+                        console.error('PeerJS Host Error:', err);
+                        createBtn.disabled = false;
+                        createBtn.classList.remove('opacity-50');
+
+                        if (err.type === 'unavailable-id') {
+                            // If code collides, regenerate code and retry
+                            this.roomCode = Math.floor(1000 + Math.random() * 9000).toString();
+                            this.initPeerJSHost(nameInput);
+                        } else {
+                            this.fallbackPeerJSHost(nameInput);
+                        }
+                    });
+
+                } catch (e) {
+                    console.error("PeerJS creation error:", e);
+                    createBtn.disabled = false;
+                    createBtn.classList.remove('opacity-50');
+                    this.showToast('네트워크 연결에 실패하였습니다. 다시 시도해주세요.', '❌');
+                }
+            }
+
+            fallbackPeerJSHost(nameInput) {
+                try {
+                    this.peer = new Peer({
+                        debug: 1,
+                        config: {
+                            iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+                        }
+                    });
+
+                    this.peer.on('open', () => {
+                        this.setupLobbyUI();
+                        this.showToast('방 생성이 완료되었습니다!', '🎉');
+                    });
+
+                    this.peer.on('connection', (conn) => {
+                        conn.on('data', (data) => this.handleHostReceivedData(conn, data));
+                    });
+                } catch (e) {
+                    this.showToast('방 생성 오류가 발생하였습니다. 페이지를 새로고침 해주세요.', '❌');
+                }
+            }
+
+            join4PRoom() {
+                audio.play('click');
+                const nameInput = document.getElementById('joinNameInput').value.trim() || '참가자';
+                const codeInput = document.getElementById('joinCodeInput').value.trim();
+                const joinBtn = document.getElementById('joinRoomBtn');
+
+                if (codeInput.length !== 4) {
+                    this.showToast('올바른 4자리 방 코드를 입력하세요.', '⚠️');
+                    return;
+                }
+
+                this.isHost = false;
+                this.myPlayerId = 'client_' + Math.random().toString(36).substring(2, 7);
+                this.roomCode = codeInput;
+                const targetPeerId = 'spellmaster-' + codeInput;
+
+                joinBtn.disabled = true;
+                joinBtn.classList.add('opacity-50');
+                this.showToast('방에 접속하는 중입니다...', '🚀');
+
+                try {
+                    if (this.peer) {
+                        try { this.peer.destroy(); } catch (e) {}
+                    }
+
+                    this.peer = new Peer({
+                        debug: 1,
+                        config: {
+                            iceServers: [
+                                { urls: 'stun:stun.l.google.com:19302' },
+                                { urls: 'stun:stun1.l.google.com:19302' }
+                            ]
+                        }
+                    });
+
+                    this.peer.on('open', () => {
+                        const conn = this.peer.connect(targetPeerId, { reliable: true });
+                        this.hostConnection = conn;
+
+                        conn.on('open', () => {
+                            joinBtn.disabled = false;
+                            joinBtn.classList.remove('opacity-50');
+                            conn.send({
+                                type: 'JOIN_REQ',
+                                playerId: this.myPlayerId,
+                                name: nameInput
+                            });
+                        });
+
+                        conn.on('data', (data) => {
+                            this.handleClientReceivedData(data);
+                        });
+
+                        conn.on('error', (err) => {
+                            console.error('Conn error:', err);
+                            joinBtn.disabled = false;
+                            joinBtn.classList.remove('opacity-50');
+                            this.showToast('방장을 찾을 수 없습니다. 방 코드를 확인하세요.', '❌');
+                        });
+                    });
+
+                    this.peer.on('error', (err) => {
+                        console.error('Peer Client Error:', err);
+                        joinBtn.disabled = false;
+                        joinBtn.classList.remove('opacity-50');
+                        this.showToast('접속 실패. 방 코드 및 인터넷 상태를 확인하세요.', '❌');
+                    });
+
+                } catch (e) {
+                    joinBtn.disabled = false;
+                    joinBtn.classList.remove('opacity-50');
+                    this.showToast('네트워크 접속 실패', '❌');
+                }
+            }
+
+            setupLobbyUI() {
+                this.hideAllScreens();
+                this.screens.lobby.classList.remove('hidden');
+
+                document.getElementById('lobbyCodeDisplay').textContent = this.roomCode;
+                document.getElementById('playerCountText').textContent = this.players.length;
+
+                // QR Code Generator
+                const qrcodeContainer = document.getElementById('qrcode');
+                qrcodeContainer.innerHTML = '';
+                new QRCode(qrcodeContainer, {
+                    text: window.location.origin + window.location.pathname + '?code=' + this.roomCode,
+                    width: 128,
+                    height: 128
+                });
+
+                if (this.isHost) {
+                    document.getElementById('lobbyHostBadge').classList.remove('hidden');
+                    document.getElementById('startGameHostBtn').classList.remove('hidden');
+                    document.getElementById('waitingHostText').classList.add('hidden');
+                } else {
+                    document.getElementById('lobbyHostBadge').classList.add('hidden');
+                    document.getElementById('startGameHostBtn').classList.add('hidden');
+                    document.getElementById('waitingHostText').classList.remove('hidden');
+                }
+
+                this.updateLobbyPlayerList();
+            }
+
+            updateLobbyPlayerList() {
+                const list = document.getElementById('playerLobbyList');
+                list.innerHTML = '';
+                
+                const avatars = ['👑', '🐱', '🐶', '🦊', '🐻', '🐼'];
+
+                this.players.forEach((p, idx) => {
+                    const item = document.createElement('div');
+                    item.className = 'flex items-center justify-between bg-indigo-900/80 px-3 py-2 rounded-xl border border-indigo-700/60 shadow-sm';
+                    item.innerHTML = `
+                        <div class="flex items-center gap-2">
+                            <span class="text-xl">${p.avatar || avatars[idx % avatars.length]}</span>
+                            <span class="text-sm font-bold text-white">${p.name}</span>
+                        </div>
+                        ${p.isHost ? '<span class="text-[10px] bg-yellow-400 text-indigo-950 font-bold px-2 py-0.5 rounded">방장</span>' : '<span class="text-[10px] bg-indigo-700 text-indigo-200 px-2 py-0.5 rounded">준비됨</span>'}
+                    `;
+                    list.appendChild(item);
+                });
+
+                document.getElementById('playerCountText').textContent = this.players.length;
+            }
+
+            handleHostReceivedData(conn, data) {
+                if (data.type === 'JOIN_REQ') {
+                    if (this.players.length >= 4) {
+                        conn.send({ type: 'ERROR', msg: '방이 가득 찼습니다. (최대 4명)' });
+                        return;
+                    }
+                    const avatars = ['🐱', '🐶', '🦊', '🐻'];
+                    const newPlayer = {
+                        id: data.playerId,
+                        name: data.name,
+                        hp: 100,
+                        maxHp: 100,
+                        avatar: avatars[this.players.length - 1] || '🦊',
+                        connId: conn.peer
+                    };
+                    this.players.push(newPlayer);
+                    this.peerConnections[conn.peer] = conn;
+
+                    this.broadcastRoomData();
+                    this.updateLobbyPlayerList();
+                    this.showToast(`${data.name}님이 입장하셨습니다!`, '👋');
+                } else if (data.type === 'SUBMIT_ANSWER') {
+                    this.playerAnswersMap[data.playerId] = data.answerIndex;
+                    this.checkMultiplayerRoundCompletion();
+                }
+            }
+
+            handleClientReceivedData(data) {
+                if (data.type === 'ROOM_DATA') {
+                    this.players = data.players;
+                    this.setupLobbyUI();
+                } else if (data.type === 'START_GAME') {
+                    this.mode = '4p';
+                    this.questions = data.questions;
+                    this.players = data.players;
+                    this.currentQuestionIndex = 0;
+
+                    this.hideAllScreens();
+                    this.screens.battle.classList.remove('hidden');
+                    this.screens.battle.classList.add('flex');
+                    document.getElementById('multiplayerStatus').classList.remove('hidden');
+
+                    this.renderPlayersCards();
+                    this.loadQuestion();
+                } else if (data.type === 'ROUND_RESULT') {
+                    this.applyRoundResults(data.answersMap, data.explanationData);
+                } else if (data.type === 'NEXT_ROUND') {
+                    this.currentQuestionIndex = data.nextIndex;
+                    document.getElementById('explanationBox').classList.add('hidden');
+                    document.getElementById('waitingOthersOverlay').classList.add('hidden');
+                    this.loadQuestion();
+                } else if (data.type === 'ERROR') {
+                    this.showToast(data.msg, '⚠️');
+                }
+            }
+
+            broadcastRoomData() {
+                Object.values(this.peerConnections).forEach(conn => {
+                    try {
+                        conn.send({
+                            type: 'ROOM_DATA',
+                            players: this.players
+                        });
+                    } catch (e) {}
+                });
+            }
+
+            startMultiplayerGame() {
+                if (!this.isHost) return;
+                audio.play('click');
+                this.mode = '4p';
+                this.questions = [...QUIZ_DATABASE].sort(() => Math.random() - 0.5).slice(0, 10);
+                
+                Object.values(this.peerConnections).forEach(conn => {
+                    try {
+                        conn.send({
+                            type: 'START_GAME',
+                            questions: this.questions,
+                            players: this.players
+                        });
+                    } catch (e) {}
+                });
+
+                this.hideAllScreens();
+                this.screens.battle.classList.remove('hidden');
+                this.screens.battle.classList.add('flex');
+                document.getElementById('multiplayerStatus').classList.remove('hidden');
+
+                this.renderPlayersCards();
+                this.loadQuestion();
+            }
+
+            leaveRoom() {
+                audio.play('click');
+                this.cleanupPeer();
+                this.showHome();
+            }
+
+            cleanupPeer() {
+                if (this.peer) {
+                    try { this.peer.destroy(); } catch (e) {}
+                    this.peer = null;
+                }
+                this.peerConnections = {};
+                this.isHost = false;
+            }
+
+            renderPlayersCards() {
+                const grid = document.getElementById('playersGrid');
+                grid.innerHTML = '';
+
+                this.players.forEach(p => {
+                    const card = document.createElement('div');
+                    card.id = `player-card-${p.id}`;
+                    card.className = 'bg-indigo-950/70 p-2.5 sm:p-3 rounded-xl border border-indigo-700/60 flex flex-col justify-between relative overflow-hidden transition transform shadow-md';
+                    
+                    const hpPercent = Math.max(0, (p.hp / p.maxHp) * 100);
+                    let barColor = 'bg-emerald-400';
+                    if (hpPercent < 30) barColor = 'bg-rose-500';
+                    else if (hpPercent < 60) barColor = 'bg-amber-400';
+
+                    card.innerHTML = `
+                        <div class="flex items-center justify-between mb-1.5">
+                            <div class="flex items-center gap-1.5 min-w-0">
+                                <span class="text-xl sm:text-2xl shrink-0">${p.avatar}</span>
+                                <span class="text-xs sm:text-sm font-bold text-white truncate">${p.name}</span>
+                            </div>
+                            <span id="hp-text-${p.id}" class="text-[11px] sm:text-xs font-mono font-bold ${p.hp <= 0 ? 'text-rose-400' : 'text-yellow-300'}">
+                                ${p.hp <= 0 ? '탈락' : `${p.hp}/${p.maxHp}`}
+                            </span>
+                        </div>
+                        <div class="w-full bg-slate-900 h-2.5 sm:h-3 rounded-full overflow-hidden border border-indigo-900/60 p-0.5">
+                            <div id="hp-bar-${p.id}" class="hp-bar-fill ${barColor} h-full rounded-full" style="width: ${hpPercent}%;"></div>
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                });
+            }
+
+            updatePlayerHP(playerId, newHp) {
+                const p = this.players.find(x => x.id === playerId);
+                if (!p) return;
+
+                p.hp = Math.max(0, Math.min(p.maxHp, newHp));
+                
+                const card = document.getElementById(`player-card-${p.id}`);
+                const hpText = document.getElementById(`hp-text-${p.id}`);
+                const hpBar = document.getElementById(`hp-bar-${p.id}`);
+
+                if (card && hpBar && hpText) {
+                    const hpPercent = (p.hp / p.maxHp) * 100;
+                    hpBar.style.width = `${hpPercent}%`;
+                    
+                    if (hpPercent < 30) hpBar.className = 'hp-bar-fill bg-rose-500 h-full rounded-full';
+                    else if (hpPercent < 60) hpBar.className = 'hp-bar-fill bg-amber-400 h-full rounded-full';
+                    else hpBar.className = 'hp-bar-fill bg-emerald-400 h-full rounded-full';
+
+                    if (p.hp <= 0) {
+                        hpText.textContent = '탈락 💀';
+                        hpText.className = 'text-[11px] sm:text-xs font-mono font-bold text-rose-400';
+                        card.classList.add('opacity-40', 'grayscale');
+                    } else {
+                        hpText.textContent = `${p.hp}/${p.maxHp}`;
+                    }
+                }
+            }
+
+            loadQuestion() {
+                if (this.currentQuestionIndex >= this.questions.length || this.checkLivingPlayers() <= 1) {
+                    this.finishGame();
+                    return;
+                }
+
+                this.isAnsweringLocked = false;
+                this.playerAnswersMap = {};
+                document.getElementById('explanationBox').classList.add('hidden');
+                document.getElementById('waitingOthersOverlay').classList.add('hidden');
+
+                const q = this.questions[this.currentQuestionIndex];
+                document.getElementById('stageProgress').textContent = `라운드 ${this.currentQuestionIndex + 1} / ${this.questions.length}`;
+                document.getElementById('questionCategory').textContent = q.category;
+                document.getElementById('questionText').textContent = q.sentence;
+
+                const optionsContainer = document.getElementById('optionsContainer');
+                optionsContainer.innerHTML = '';
+
+                q.options.forEach((opt, idx) => {
+                    const btn = document.createElement('button');
+                    btn.className = 'w-full bg-gradient-to-r from-indigo-800 to-indigo-900 hover:from-indigo-700 hover:to-indigo-800 text-white font-jua text-lg sm:text-xl py-3.5 px-4 rounded-xl border border-indigo-600/50 shadow-lg transition transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed';
+                    btn.textContent = `${idx + 1}. ${opt}`;
+                    btn.onclick = () => this.handleAnswerSelect(idx);
+                    optionsContainer.appendChild(btn);
+                });
+
+                if (this.mode === '2p') {
+                    const activeP = this.players[this.turnIndex % this.players.length];
+                    document.getElementById('turnBadge').textContent = `${activeP.name} 차례!`;
+                } else {
+                    document.getElementById('turnBadge').textContent = `맞춤법 배틀 중!`;
+                }
+
+                this.startTimer(15);
+            }
+
+            startTimer(seconds) {
+                this.stopTimer();
+                this.timeLeft = seconds;
+                const timerBar = document.getElementById('timerBar');
+                timerBar.style.transition = 'none';
+                timerBar.style.width = '100%';
+
+                setTimeout(() => {
+                    timerBar.style.transition = `width ${seconds}s linear`;
+                    timerBar.style.width = '0%';
+                }, 50);
+
+                this.timer = setInterval(() => {
+                    this.timeLeft--;
+                    if (this.timeLeft <= 0) {
+                        this.stopTimer();
+                        this.handleTimeOut();
+                    }
+                }, 1000);
+            }
+
+            stopTimer() {
+                if (this.timer) {
+                    clearInterval(this.timer);
+                    this.timer = null;
+                }
+            }
+
+            handleAnswerSelect(answerIndex) {
+                if (this.isAnsweringLocked) return;
+                this.isAnsweringLocked = true;
+                this.stopTimer();
+                audio.play('click');
+
+                if (this.mode === '1p') {
+                    const q = this.questions[this.currentQuestionIndex];
+                    const aiWillBeCorrect = Math.random() < 0.75;
+                    const aiAnswerIndex = aiWillBeCorrect ? q.correct : (q.correct === 0 ? 1 : 0);
+
+                    const answers = {
+                        'p1': answerIndex,
+                        'bot': aiAnswerIndex
+                    };
+                    this.processRoundResults(answers);
+
+                } else if (this.mode === '2p') {
+                    const currentPlayer = this.players[this.turnIndex % this.players.length];
+                    const answers = {};
+                    answers[currentPlayer.id] = answerIndex;
+                    this.turnIndex++;
+                    this.processRoundResults(answers);
+
+                } else if (this.mode === '4p') {
+                    document.getElementById('waitingOthersOverlay').classList.remove('hidden');
+
+                    if (this.isHost) {
+                        this.playerAnswersMap[this.myPlayerId] = answerIndex;
+                        this.checkMultiplayerRoundCompletion();
+                    } else {
+                        if (this.hostConnection) {
+                            this.hostConnection.send({
+                                type: 'SUBMIT_ANSWER',
+                                playerId: this.myPlayerId,
+                                answerIndex: answerIndex
+                            });
+                        }
+                    }
+                }
+            }
+
+            handleTimeOut() {
+                if (this.isAnsweringLocked) return;
+                this.isAnsweringLocked = true;
+
+                if (this.mode === '1p') {
+                    const q = this.questions[this.currentQuestionIndex];
+                    const aiAnswerIndex = q.correct;
+                    this.processRoundResults({ 'p1': -1, 'bot': aiAnswerIndex });
+                } else if (this.mode === '2p') {
+                    const currentPlayer = this.players[this.turnIndex % this.players.length];
+                    const answers = {};
+                    answers[currentPlayer.id] = -1;
+                    this.turnIndex++;
+                    this.processRoundResults(answers);
+                } else if (this.mode === '4p' && this.isHost) {
+                    this.players.forEach(p => {
+                        if (this.playerAnswersMap[p.id] === undefined) {
+                            this.playerAnswersMap[p.id] = -1;
+                        }
+                    });
+                    this.checkMultiplayerRoundCompletion();
+                }
+            }
+
+            checkMultiplayerRoundCompletion() {
+                if (!this.isHost) return;
+                const activePlayers = this.players.filter(p => p.hp > 0);
+                const allAnswered = activePlayers.every(p => this.playerAnswersMap[p.id] !== undefined);
+
+                if (allAnswered) {
+                    const q = this.questions[this.currentQuestionIndex];
+                    const explanationData = {
+                        correctIndex: q.correct,
+                        explanation: q.explanation,
+                        tip: q.tip
+                    };
+
+                    this.applyRoundResults(this.playerAnswersMap, explanationData);
+
+                    Object.values(this.peerConnections).forEach(conn => {
+                        try {
+                            conn.send({
+                                type: 'ROUND_RESULT',
+                                answersMap: this.playerAnswersMap,
+                                explanationData: explanationData
+                            });
+                        } catch (e) {}
+                    });
+                }
+            }
+
+            processRoundResults(answersMap) {
+                const q = this.questions[this.currentQuestionIndex];
+                const explanationData = {
+                    correctIndex: q.correct,
+                    explanation: q.explanation,
+                    tip: q.tip
+                };
+                this.applyRoundResults(answersMap, explanationData);
+            }
+
+            applyRoundResults(answersMap, explanationData) {
+                document.getElementById('waitingOthersOverlay').classList.add('hidden');
+                
+                const q = this.questions[this.currentQuestionIndex];
+                let isMyAnswerCorrect = false;
+                let myAnswerIndex = answersMap[this.myPlayerId || 'p1'];
+
+                if (myAnswerIndex === q.correct) {
+                    isMyAnswerCorrect = true;
+                    audio.play('correct');
+                } else {
+                    audio.play('wrong');
+                    audio.play('hit');
+                    this.fx.triggerAttackFx();
+                }
+
+                // Apply damage & heal calculations
+                this.players.forEach(p => {
+                    if (p.hp <= 0) return;
+                    const ans = answersMap[p.id];
+                    if (ans === q.correct) {
+                        this.updatePlayerHP(p.id, p.hp + 15);
+                    } else {
+                        this.updatePlayerHP(p.id, p.hp - 25);
+                        
+                        const card = document.getElementById(`player-card-${p.id}`);
                         if (card) {
-                            card.classList.add('animate-damage');
-                            setTimeout(() => card.classList.remove('animate-damage'), 300);
+                            card.classList.add('animate-shake', 'animate-damage');
+                            setTimeout(() => {
+                                card.classList.remove('animate-shake', 'animate-damage');
+                            }, 500);
                         }
                     }
                 });
-                if (hitSomeone) drawSlashEffect();
-            } else {
-                playSound('wrong');
-                gameState.players[attackerIdx].hp -= DAMAGE_AMT;
-                const card = document.getElementById(`playerCard-${attackerIdx}`);
-                if (card) {
-                    card.classList.add('animate-damage');
-                    setTimeout(() => card.classList.remove('animate-damage'), 300);
-                }
-            }
 
-            gameState.players.forEach(p => {
-                if (p.hp <= 0) p.isAlive = false;
-            });
-
-            updatePlayerHPUI();
-        }
-
-        function showExplanationUI(isCorrect, q, isTimeout=false) {
-            document.getElementById('quizContent').classList.add('hidden');
-            const expBox = document.getElementById('explanationBox');
-            expBox.classList.remove('hidden');
-            
-            const iconBox = document.getElementById('resultIconBox');
-            const title = document.getElementById('resultTitle');
-            
-            expBox.className = 'bg-indigo-950/95 backdrop-blur-xl border-2 rounded-2xl p-5 shadow-2xl relative z-20 transition-all';
-            
-            if (isCorrect) {
-                expBox.classList.add('border-emerald-500', 'shadow-[0_0_20px_rgba(16,185,129,0.3)]');
-                iconBox.className = 'w-12 h-12 rounded-full flex items-center justify-center text-2xl shrink-0 shadow-inner bg-emerald-500/20 text-emerald-400 border border-emerald-500/50';
-                iconBox.innerHTML = '✅';
-                title.className = 'font-jua text-lg sm:text-xl mb-1.5 text-emerald-400';
-                title.innerText = `정답입니다! 공격 성공 & HP +${HEAL_AMT} 회복!`;
-            } else {
-                expBox.classList.add('border-red-500', 'shadow-[0_0_20px_rgba(239,68,68,0.3)]', 'animate-shake');
-                iconBox.className = 'w-12 h-12 rounded-full flex items-center justify-center text-2xl shrink-0 shadow-inner bg-red-500/20 text-red-400 border border-red-500/50';
-                iconBox.innerHTML = '❌';
-                title.className = 'font-jua text-lg sm:text-xl mb-1.5 text-red-400';
-                title.innerText = isTimeout ? '시간 초과! 데미지를 입었습니다.' : '오답입니다! 데미지를 입었습니다.';
-                setTimeout(() => expBox.classList.remove('animate-shake'), 400);
-            }
-
-            document.getElementById('resultText').innerHTML = q.explanation;
-            document.getElementById('tipText').innerHTML = q.tip;
-
-            if (gameState.mode === '4p') {
-                document.getElementById('nextTurnBtnWrapper').classList.add('hidden');
-                document.getElementById('waitingHostNextText').classList.remove('hidden');
+                // Render Explanation Box
+                const expBox = document.getElementById('explanationBox');
+                const iconBox = document.getElementById('resultIconBox');
+                const title = document.getElementById('resultTitle');
                 
-                if (gameState.isHost) {
+                if (isMyAnswerCorrect) {
+                    iconBox.textContent = '🎉';
+                    iconBox.className = 'w-12 h-12 rounded-full flex items-center justify-center text-2xl shrink-0 shadow-inner bg-emerald-500/20 text-emerald-300 border border-emerald-500/40';
+                    title.textContent = '정답입니다! (체력 +15 회복)';
+                    title.className = 'font-jua text-lg sm:text-xl mb-1.5 text-emerald-300';
+                } else {
+                    iconBox.textContent = '💥';
+                    iconBox.className = 'w-12 h-12 rounded-full flex items-center justify-center text-2xl shrink-0 shadow-inner bg-rose-500/20 text-rose-300 border border-rose-500/40';
+                    title.textContent = '아쉽게 틀렸습니다! (체력 -25 감소)';
+                    title.className = 'font-jua text-lg sm:text-xl mb-1.5 text-rose-400';
+                }
+
+                document.getElementById('resultText').textContent = explanationData.explanation;
+                document.getElementById('tipText').textContent = explanationData.tip;
+
+                expBox.classList.remove('hidden');
+
+                if (this.mode === '4p' && !this.isHost) {
+                    document.getElementById('nextTurnBtnWrapper').classList.add('hidden');
+                    document.getElementById('waitingHostNextText').classList.remove('hidden');
+                } else {
                     document.getElementById('nextTurnBtnWrapper').classList.remove('hidden');
                     document.getElementById('waitingHostNextText').classList.add('hidden');
-                    document.getElementById('nextBtn').innerText = '다음 문제 출제하기 ➔';
-                }
-            } else {
-                document.getElementById('nextTurnBtnWrapper').classList.remove('hidden');
-                document.getElementById('waitingHostNextText').classList.add('hidden');
-                document.getElementById('nextBtn').innerText = '다음 라운드로 ➔';
-            }
-        }
-
-        function endGameLocal() {
-            hideAllScreens();
-            const resScreen = document.getElementById('resultScreen');
-            resScreen.classList.remove('hidden');
-            resScreen.classList.add('block');
-
-            const alive = gameState.players.filter(p => p.isAlive);
-            const sorted = [...gameState.players].sort((a,b) => b.hp - a.hp);
-            
-            const title = document.getElementById('winnerText');
-            const sub = document.getElementById('winnerSubtext');
-            const badgeTitle = document.getElementById('badgeTitle');
-            
-            if (alive.length === 1) {
-                title.innerText = `${alive[0].name} 우승!`;
-                sub.innerText = "끝까지 살아남은 최후의 승자입니다.";
-                badgeTitle.innerText = "서바이벌 챔피언";
-            } else {
-                title.innerText = `게임 종료!`;
-                sub.innerText = "지정된 라운드가 모두 끝났습니다.";
-                badgeTitle.innerText = "맞춤법 마스터";
-            }
-
-            const lbList = document.getElementById('leaderboardList');
-            lbList.innerHTML = '';
-            sorted.forEach((p, idx) => {
-                const medal = idx === 0 ? '🥇' : (idx === 1 ? '🥈' : '🥉');
-                const isDead = p.hp <= 0;
-                lbList.innerHTML += `
-                    <div class="flex justify-between items-center bg-indigo-900/50 p-3 rounded-lg border border-indigo-700/50 ${isDead ? 'opacity-60' : ''}">
-                        <div class="flex items-center gap-2">
-                            <span class="text-xl">${medal}</span>
-                            <span class="font-bold text-white">${p.name} ${p.isAI ? '(AI)' : ''}</span>
-                        </div>
-                        <span class="font-mono font-bold ${p.hp > 0 ? 'text-emerald-400' : 'text-red-400'}">${Math.max(0, p.hp)} HP</span>
-                    </div>
-                `;
-            });
-
-            createConfetti();
-        }
-
-        // --- 8. CANVAS VISUAL EFFECTS ---
-        function drawSlashEffect() {
-            const canvas = document.getElementById('attackCanvas');
-            if (!canvas) return;
-            const ctx = canvas.getContext('2d');
-            canvas.width = canvas.offsetWidth;
-            canvas.height = canvas.offsetHeight;
-
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.strokeStyle = '#facc15'; // yellow light beam
-            ctx.lineWidth = 6;
-            ctx.shadowBlur = 15;
-            ctx.shadowColor = '#eab308';
-
-            let progress = 0;
-            function animateSlash() {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.beginPath();
-                ctx.moveTo(canvas.width * 0.1, canvas.height * 0.2);
-                ctx.lineTo(canvas.width * 0.1 + (canvas.width * 0.8) * progress, canvas.height * 0.2 + (canvas.height * 0.6) * progress);
-                ctx.stroke();
-
-                progress += 0.2;
-                if (progress <= 1) {
-                    requestAnimationFrame(animateSlash);
-                } else {
-                    setTimeout(() => ctx.clearRect(0, 0, canvas.width, canvas.height), 100);
                 }
             }
-            animateSlash();
-        }
 
-        function createConfetti() {
-            const canvas = document.getElementById('confettiCanvas');
-            if (!canvas) return;
-            const ctx = canvas.getContext('2d');
-            canvas.width = canvas.offsetWidth;
-            canvas.height = canvas.offsetHeight;
-            
-            let particles = [];
-            for (let i = 0; i < 100; i++) {
-                particles.push({
-                    x: canvas.width / 2,
-                    y: canvas.height / 2,
-                    vx: (Math.random() - 0.5) * 16,
-                    vy: (Math.random() - 0.5) * 16 - 4,
-                    color: `hsl(${Math.random() * 360}, 100%, 60%)`,
-                    size: Math.random() * 8 + 4
-                });
-            }
-            
-            function animate() {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                particles.forEach(p => {
-                    p.x += p.vx;
-                    p.y += p.vy;
-                    p.vy += 0.4;
-                    ctx.fillStyle = p.color;
-                    ctx.fillRect(p.x, p.y, p.size, p.size);
-                });
-                if (particles.some(p => p.y < canvas.height)) {
-                    requestAnimationFrame(animate);
-                }
-            }
-            playSound('correct');
-            animate();
-        }
+            proceedNextTurn() {
+                audio.play('click');
+                this.currentQuestionIndex++;
 
-        // --- 9. MULTIPLAYER CONTROL HELPERS ---
-        function create4PRoom() {
-            const hostName = document.getElementById('hostNameInput').value.trim() || '방장';
-            
-            gameState.isHost = true;
-            gameState.mode = '4p';
-            
-            const code = Math.floor(1000 + Math.random() * 9000).toString();
-            gameState.roomCode = code;
-
-            showToast("방을 생성하는 중...");
-
-            initPeerAsHost(code, (peerId) => {
-                gameState.myId = peerId;
-                gameState.players = [{ id: peerId, name: hostName, hp: MAX_HP, isAlive: true }];
-                showToast("방이 생성되었습니다!");
-                enterLobby(code);
-            }, (err) => {
-                showToast("방 생성 중 오류가 발생했습니다. 다시 시도해 주세요.");
-            });
-        }
-
-        function join4PRoom(codeFromUrl = null) {
-            const code = codeFromUrl || document.getElementById('joinCodeInput').value.trim().toUpperCase();
-            const joinName = document.getElementById('joinNameInput').value.trim() || '학생';
-            
-            if (!code || code.length !== 4) {
-                showToast("4자리 방 코드를 입력하세요.");
-                return;
-            }
-
-            gameState.isHost = false;
-            gameState.mode = '4p';
-            gameState.roomCode = code;
-
-            showToast("방에 접속하는 중...");
-
-            initPeerAsGuest(code, joinName, () => {
-                showToast("방에 입장했습니다!");
-                enterLobby(code);
-            }, (err) => {
-                showToast("방에 접속할 수 없습니다. 방 코드를 확인해 주세요.");
-            });
-        }
-
-        function enterLobby(code) {
-            hideAllScreens();
-            document.getElementById('lobbyScreen').classList.remove('hidden');
-            document.getElementById('lobbyScreen').classList.add('block');
-            document.getElementById('lobbyCodeDisplay').innerText = code;
-
-            const qrcodeDiv = document.getElementById("qrcode");
-            qrcodeDiv.innerHTML = "";
-            const currentUrl = window.location.href.split('?')[0];
-            new QRCode(qrcodeDiv, {
-                text: `${currentUrl}?room=${code}`,
-                width: 120,
-                height: 120,
-                colorDark: "#1e1b4b",
-                colorLight: "#ffffff",
-                correctLevel: QRCode.CorrectLevel.L
-            });
-
-            if (gameState.isHost) {
-                document.getElementById('lobbyHostBadge').classList.remove('hidden');
-                document.getElementById('startGameHostBtn').classList.remove('hidden');
-                document.getElementById('waitingHostText').classList.add('hidden');
-                document.getElementById('lobbyInstruction').innerText = "참가자가 모두 모이면 시작 버튼을 누르세요.";
-            } else {
-                document.getElementById('lobbyHostBadge').classList.add('hidden');
-                document.getElementById('startGameHostBtn').classList.add('hidden');
-                document.getElementById('waitingHostText').classList.remove('hidden');
-                document.getElementById('lobbyInstruction').innerText = "방장이 게임을 시작하기를 기다립니다.";
-            }
-
-            updateLobbyUI();
-        }
-
-        function startMultiplayerGame() {
-            if (!gameState.isHost) return;
-            
-            gameState.currentRound = 1;
-            const qIdx = Math.floor(Math.random() * QUIZ_DATABASE.length);
-            gameState.currentQuestion = QUIZ_DATABASE[qIdx];
-            gameState.answers = {};
-
-            broadcastToGuests({
-                type: 'START_GAME',
-                players: gameState.players,
-                round: 1,
-                questionIdx: qIdx
-            });
-
-            hideAllScreens();
-            document.getElementById('battleScreen').classList.remove('hidden');
-            document.getElementById('battleScreen').classList.add('flex');
-            document.getElementById('multiplayerStatus').classList.remove('hidden');
-            document.getElementById('explanationBox').classList.add('hidden');
-            document.getElementById('quizContent').classList.remove('hidden', 'opacity-0');
-            document.getElementById('waitingOthersOverlay').classList.add('hidden');
-
-            document.getElementById('turnBadge').innerText = `🔥 모두의 턴!`;
-            document.getElementById('stageProgress').innerText = `라운드 1`;
-
-            buildPlayerCards();
-            renderQuestionUI(gameState.currentQuestion);
-            startTimer(TIME_LIMIT, () => handleTimeoutMultiplayerHost());
-        }
-
-        function submitAnswerMultiplayer(idx) {
-            playSound('select');
-            document.getElementById('waitingOthersOverlay').classList.remove('hidden');
-            
-            if (gameState.isHost) {
-                gameState.answers[gameState.myId] = idx;
-                checkAllAnsweredHost();
-            } else {
-                if (hostConn && hostConn.open) {
-                    hostConn.send({ type: 'SUBMIT_ANSWER', answerIdx: idx });
-                }
-            }
-        }
-
-        function checkAllAnsweredHost() {
-            if (!gameState.isHost) return;
-            const alivePlayers = gameState.players.filter(p => p.isAlive);
-            const allAnswered = alivePlayers.every(p => gameState.answers[p.id] !== undefined);
-            
-            if (allAnswered) {
-                evaluateMultiplayerTurnPeer();
-            }
-        }
-
-        function handleTimeoutMultiplayerHost() {
-            if (!gameState.isHost) return;
-            evaluateMultiplayerTurnPeer();
-        }
-
-        function evaluateMultiplayerTurnPeer() {
-            clearInterval(gameState.timer);
-            const q = gameState.currentQuestion;
-
-            gameState.players.forEach(p => {
-                if (!p.isAlive) return;
-                const ans = gameState.answers[p.id];
-                if (ans === q.answer) {
-                    p.hp = Math.min(MAX_HP, p.hp + HEAL_AMT);
-                } else {
-                    p.hp -= DAMAGE_AMT;
-                }
-                if (p.hp <= 0) p.isAlive = false;
-            });
-
-            const aliveCount = gameState.players.filter(p => p.isAlive).length;
-            const isGameOver = aliveCount <= 1 || gameState.currentRound >= 10;
-
-            broadcastToGuests({
-                type: isGameOver ? 'GAME_OVER' : 'ROUND_RESULT',
-                players: gameState.players,
-                answers: gameState.answers
-            });
-
-            if (isGameOver) {
-                endGameLocal();
-            } else {
-                document.getElementById('waitingOthersOverlay').classList.add('hidden');
-                updatePlayerHPUI();
-                
-                const myAns = gameState.answers[gameState.myId];
-                const isCorrect = (myAns === q.answer);
-                if (isCorrect) playSound('correct'); else playSound('wrong');
-                showExplanationUI(isCorrect, q, myAns === undefined);
-            }
-        }
-
-        function proceedNextTurn() {
-            if (gameState.mode === '4p') {
-                if (gameState.isHost) {
-                    gameState.currentRound++;
-                    const qIdx = Math.floor(Math.random() * QUIZ_DATABASE.length);
-                    gameState.currentQuestion = QUIZ_DATABASE[qIdx];
-                    gameState.answers = {};
-
-                    broadcastToGuests({
-                        type: 'START_GAME',
-                        players: gameState.players,
-                        round: gameState.currentRound,
-                        questionIdx: qIdx
+                if (this.mode === '4p' && this.isHost) {
+                    Object.values(this.peerConnections).forEach(conn => {
+                        try {
+                            conn.send({
+                                type: 'NEXT_ROUND',
+                                nextIndex: this.currentQuestionIndex
+                            });
+                        } catch (e) {}
                     });
-
-                    document.getElementById('explanationBox').classList.add('hidden');
-                    document.getElementById('quizContent').classList.remove('hidden', 'opacity-0');
-                    document.getElementById('waitingOthersOverlay').classList.add('hidden');
-
-                    document.getElementById('turnBadge').innerText = `🔥 모두의 턴!`;
-                    document.getElementById('stageProgress').innerText = `라운드 ${gameState.currentRound}`;
-
-                    buildPlayerCards();
-                    renderQuestionUI(gameState.currentQuestion);
-                    startTimer(TIME_LIMIT, () => handleTimeoutMultiplayerHost());
                 }
-            } else {
-                startNextRoundLocal();
+
+                this.loadQuestion();
             }
-        }
 
-        function leaveRoom() {
-            if (peerInstance) {
-                peerInstance.destroy();
-                peerInstance = null;
+            checkLivingPlayers() {
+                return this.players.filter(p => p.hp > 0).length;
             }
-            game.showHome();
-        }
 
-        // --- 10. EXPORT GLOBAL API ---
-        window.game = {
-            showHome: () => {
-                if (peerInstance) {
-                    peerInstance.destroy();
-                    peerInstance = null;
-                }
-                clearInterval(gameState.timer);
-                hideAllScreens();
-                document.getElementById('startScreen').classList.remove('hidden');
-                document.getElementById('startScreen').classList.add('block');
-                
-                const urlParams = new URLSearchParams(window.location.search);
-                const roomToJoin = urlParams.get('room');
-                if (roomToJoin) {
-                    window.history.replaceState({}, document.title, window.location.pathname);
-                    document.getElementById('joinCodeInput').value = roomToJoin;
-                    game.open4PSetup();
-                    showToast(`방 코드 [${roomToJoin}]가 입력되었습니다.`);
-                }
-            },
-            toggleSound: () => {
-                isSoundEnabled = !isSoundEnabled;
-                document.getElementById('soundIcon').innerText = isSoundEnabled ? '🔊' : '🔇';
-                document.getElementById('soundToggleBtn').classList.toggle('opacity-50');
-                if (isSoundEnabled) playSound('select');
-            },
-            startBattle: (mode) => {
-                playSound('select');
-                initializeLocalGame(mode);
-            },
-            open4PSetup: () => {
-                playSound('select');
-                hideAllScreens();
-                document.getElementById('roomSetupScreen').classList.remove('hidden');
-                document.getElementById('roomSetupScreen').classList.add('block');
-            },
-            create4PRoom: () => { playSound('select'); create4PRoom(); },
-            join4PRoom: () => { playSound('select'); join4PRoom(); },
-            startMultiplayerGame: () => { playSound('select'); startMultiplayerGame(); },
-            proceedNextTurn: () => { playSound('select'); proceedNextTurn(); },
-            leaveRoom: () => { playSound('select'); leaveRoom(); }
-        };
+            finishGame() {
+                this.stopTimer();
+                audio.play('victory');
+                this.fx.triggerConfetti();
 
-        function initBgParticles() {
-            const canvas = document.getElementById('bgCanvas');
-            if (!canvas) return;
-            const ctx = canvas.getContext('2d');
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            
-            const particles = Array.from({length: 30}, () => ({
-                x: Math.random() * canvas.width,
-                y: Math.random() * canvas.height,
-                size: Math.random() * 2 + 1,
-                vx: (Math.random() - 0.5) * 0.5,
-                vy: (Math.random() - 0.5) * 0.5
-            }));
+                this.hideAllScreens();
+                this.screens.result.classList.remove('hidden');
 
-            function animateBg() {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-                particles.forEach(p => {
-                    p.x += p.vx;
-                    p.y += p.vy;
-                    if (p.x < 0) p.x = canvas.width;
-                    if (p.x > canvas.width) p.x = 0;
-                    if (p.y < 0) p.y = canvas.height;
-                    if (p.y > canvas.height) p.y = 0;
-                    ctx.beginPath();
-                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-                    ctx.fill();
+                const ranked = [...this.players].sort((a, b) => b.hp - a.hp);
+                const winner = ranked[0];
+
+                document.getElementById('winnerText').textContent = `${winner.name} 승리!`;
+                document.getElementById('winnerSubtext').textContent = `최후까지 남은 맞춤법 마스터! (${winner.hp} HP 남음)`;
+
+                const list = document.getElementById('leaderboardList');
+                list.innerHTML = '';
+
+                const rankBadges = ['🥇 1위', '🥈 2위', '🥉 3위', '4위'];
+
+                ranked.forEach((p, idx) => {
+                    const row = document.createElement('div');
+                    row.className = 'flex items-center justify-between bg-indigo-900/60 p-3 rounded-xl border border-indigo-700/50';
+                    row.innerHTML = `
+                        <div class="flex items-center gap-2">
+                            <span class="text-sm font-bold text-yellow-300 w-12 text-left">${rankBadges[idx] || `${idx + 1}위`}</span>
+                            <span class="text-lg">${p.avatar}</span>
+                            <span class="text-sm font-bold text-white">${p.name}</span>
+                        </div>
+                        <span class="font-mono text-sm font-bold ${p.hp > 0 ? 'text-emerald-300' : 'text-rose-400'}">
+                            ${p.hp > 0 ? `${p.hp} HP` : '탈락'}
+                        </span>
+                    `;
+                    list.appendChild(row);
                 });
-                requestAnimationFrame(animateBg);
             }
-            animateBg();
+
+            restartCurrentMode() {
+                this.startBattle(this.mode);
+            }
         }
 
-        window.onload = () => {
-            initBgParticles();
-            game.showHome();
+        let game;
+        window.onload = function() {
+            game = new SpellingBattleGame();
+
+            // Auto-join room if code query param is present
+            const urlParams = new URLSearchParams(window.location.search);
+            const code = urlParams.get('code');
+            if (code && code.length === 4) {
+                game.open4PSetup();
+                document.getElementById('joinCodeInput').value = code;
+                game.showToast('방 코드가 자동으로 입력되었습니다!', '📱');
+            }
         };
     </script>
 </body>
