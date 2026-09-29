@@ -3,1627 +3,3490 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
     <title>초등 6학년 한글 맞춤법 대결 마스터</title>
-    <!-- Tailwind CSS CDN -->
+
+    <!-- Tailwind -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- QRCode.js Library -->
+
+    <!-- QR Code -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <!-- PeerJS Library for P2P Multiplayer -->
+
+    <!-- PeerJS -->
     <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
-    <!-- Google Font: Jua & Noto Sans KR -->
+
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;600;700;800&display=swap" rel="stylesheet">
-    
+
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     fontFamily: {
                         jua: ['Jua', 'sans-serif'],
-                        sans: ['Noto Sans KR', 'sans-serif'],
-                    },
-                    colors: {
-                        brand: {
-                            50: '#f0f9ff',
-                            100: '#e0f2fe',
-                            500: '#0284c7',
-                            600: '#0369a1',
-                            700: '#095180',
-                        }
-                    },
-                    animation: {
-                        'pulse-fast': 'pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        sans: ['Noto Sans KR', 'sans-serif']
                     }
                 }
             }
-        }
+        };
     </script>
+
     <style>
         body {
             font-family: 'Noto Sans KR', sans-serif;
-            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%);
-            min-height: 100vh;
-            user-select: none;
-            -webkit-tap-highlight-color: transparent;
+            background: linear-gradient(135deg,#0f172a 0%,#1e1b4b 50%,#312e81 100%);
+            min-height:100vh;
+            user-select:none;
+            -webkit-tap-highlight-color:transparent;
         }
-        .font-jua {
-            font-family: 'Jua', sans-serif;
-        }
-        @keyframes attackShake {
-            0%, 100% { transform: translateX(0); }
-            20%, 60% { transform: translateX(-8px) rotate(-1deg); }
-            40%, 80% { transform: translateX(8px) rotate(1deg); }
-        }
-        @keyframes damageFlash {
-            0%, 100% { filter: brightness(1); }
-            50% { filter: brightness(2) hue-rotate(-50deg) saturate(2); }
-        }
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-6px); }
-        }
-        .animate-shake { animation: attackShake 0.4s ease-in-out; }
-        .animate-damage { animation: damageFlash 0.3s ease-in-out; }
-        .animate-float { animation: float 3s ease-in-out infinite; }
 
-        .glow-box {
-            box-shadow: 0 0 25px rgba(129, 140, 248, 0.25);
+        .font-jua {
+            font-family:'Jua',sans-serif;
         }
-        .glow-text {
-            text-shadow: 0 0 12px rgba(253, 224, 71, 0.6);
+
+        .hp-bar {
+            transition:width .4s ease;
         }
-        .hp-bar-fill {
-            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.4s;
+
+        @keyframes shake {
+            0%,100% { transform:translateX(0); }
+            25% { transform:translateX(-8px); }
+            75% { transform:translateX(8px); }
         }
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-radius: 10px; }
-        ::-webkit-scrollbar-thumb { background: rgba(99, 102, 241, 0.5); border-radius: 10px; }
+
+        .shake {
+            animation:shake .35s ease;
+        }
+
+        .glow {
+            box-shadow:0 0 25px rgba(129,140,248,.25);
+        }
     </style>
 </head>
-<body class="text-slate-100 flex flex-col min-h-screen justify-between overflow-x-hidden">
 
-    <!-- TOP HEADER NAVBAR -->
-    <header class="w-full max-w-5xl mx-auto px-4 pt-4 pb-2 flex justify-between items-center z-10 relative">
-        <div class="flex items-center space-x-3 cursor-pointer" onclick="game.showHome()">
-            <span class="text-3xl filter drop-shadow-md">⚔️</span>
-            <div>
-                <h1 class="text-2xl sm:text-3xl font-jua text-yellow-300 tracking-wide glow-text">맞춤법 대결 마스터</h1>
-                <p class="text-xs text-indigo-200 hidden sm:block">초등 6학년 국어 맞춤법 실시간 멀티 대결!</p>
-            </div>
-        </div>
-        <div class="flex items-center space-x-2">
-            <button id="soundToggleBtn" onclick="game.toggleSound()" class="bg-indigo-900/80 hover:bg-indigo-800 text-yellow-300 p-2 sm:px-3 sm:py-2.5 rounded-xl border border-indigo-500/50 transition flex items-center gap-1.5 text-xs sm:text-sm font-semibold shadow">
-                <span id="soundIcon">🔊</span>
-                <span class="hidden sm:inline">효과음 ON</span>
-            </button>
-            <button onclick="game.showHome()" class="bg-indigo-900/80 hover:bg-indigo-800 text-white p-2 sm:px-3 sm:py-2.5 rounded-xl border border-indigo-500/50 transition text-xs sm:text-sm font-semibold shadow">
-                🏠 <span class="hidden sm:inline">처음으로</span>
-            </button>
-        </div>
-    </header>
+<body class="text-white min-h-screen">
 
-    <!-- NOTIFICATION TOAST -->
-    <div id="toast" class="fixed top-20 left-1/2 transform -translate-x-1/2 bg-indigo-900 text-white px-4 py-2.5 rounded-full shadow-2xl border border-indigo-400 z-50 opacity-0 pointer-events-none transition-all duration-300 flex items-center gap-2 text-xs sm:text-sm font-bold max-w-[90vw] text-center">
-        <span id="toastIcon">ℹ️</span>
-        <span id="toastMessage">알림 메시지</span>
+<header class="w-full max-w-5xl mx-auto px-4 py-4 flex justify-between items-center">
+
+    <div onclick="game.showHome()" class="cursor-pointer flex items-center gap-3">
+        <span class="text-3xl">⚔️</span>
+
+        <div>
+            <h1 class="text-2xl sm:text-3xl font-jua text-yellow-300">
+                맞춤법 대결 마스터
+            </h1>
+
+            <p class="text-xs text-indigo-200 hidden sm:block">
+                초등 6학년 국어 맞춤법 실시간 멀티 대결
+            </p>
+        </div>
     </div>
 
-    <!-- MAIN GAME CONTAINER -->
-    <main class="w-full max-w-4xl mx-auto px-4 my-auto py-4 flex-1 flex flex-col justify-center relative z-10">
+    <div class="flex gap-2">
 
-        <!-- START / MODE SELECT SCREEN -->
-        <section id="startScreen" class="bg-indigo-900/60 backdrop-blur-md rounded-3xl p-6 sm:p-10 border border-indigo-500/30 shadow-2xl text-center glow-box animate-float">
-            <div class="inline-block px-4 py-1.5 bg-yellow-400 text-indigo-950 font-bold rounded-full text-xs sm:text-sm mb-4 shadow">
-                🎓 초등학교 6학년 필수 맞춤법
+        <button
+            onclick="game.toggleSound()"
+            class="bg-indigo-900/80 border border-indigo-500/50 px-3 py-2 rounded-xl text-sm">
+            <span id="soundIcon">🔊</span>
+        </button>
+
+        <button
+            onclick="game.showHome()"
+            class="bg-indigo-900/80 border border-indigo-500/50 px-3 py-2 rounded-xl text-sm">
+            🏠
+        </button>
+
+    </div>
+</header>
+
+
+<div
+    id="toast"
+    class="fixed z-50 top-20 left-1/2 -translate-x-1/2
+           bg-indigo-950 border border-indigo-400
+           rounded-full px-5 py-3
+           opacity-0 pointer-events-none
+           transition-all duration-300
+           font-bold text-sm text-center">
+    <span id="toastIcon">ℹ️</span>
+    <span id="toastMessage"></span>
+</div>
+
+
+<main class="max-w-4xl mx-auto px-4 py-5">
+
+    <!-- ==================== HOME ==================== -->
+
+    <section
+        id="startScreen"
+        class="bg-indigo-900/70 rounded-3xl p-6 sm:p-10 border border-indigo-500/30 glow text-center">
+
+        <div class="inline-block bg-yellow-400 text-indigo-950 px-4 py-2 rounded-full text-sm font-bold mb-4">
+            🎓 초등학교 6학년 필수 맞춤법
+        </div>
+
+        <h2 class="text-4xl sm:text-5xl font-jua mb-5">
+            서바이벌 맞춤법 배틀!
+        </h2>
+
+        <p class="text-indigo-200 mb-8">
+            맞춤법 문제를 풀고 상대방의 HP를 공격하세요.
+        </p>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+
+            <button
+                onclick="game.startBattle('1p')"
+                class="bg-blue-700 hover:bg-blue-600 p-5 rounded-2xl text-left">
+                <div class="text-3xl mb-3">🤖</div>
+                <h3 class="font-jua text-xl text-yellow-300">
+                    AI 로봇 대결
+                </h3>
+                <p class="text-sm text-blue-100 mt-2">
+                    세종봇과 1:1 대결
+                </p>
+            </button>
+
+
+            <button
+                onclick="game.startBattle('2p')"
+                class="bg-pink-700 hover:bg-pink-600 p-5 rounded-2xl text-left">
+                <div class="text-3xl mb-3">⚔️</div>
+                <h3 class="font-jua text-xl text-yellow-300">
+                    2인 오프라인
+                </h3>
+                <p class="text-sm text-pink-100 mt-2">
+                    한 기기로 두 명이 플레이
+                </p>
+            </button>
+
+
+            <button
+                onclick="game.open4PSetup()"
+                class="bg-emerald-700 hover:bg-emerald-600 p-5 rounded-2xl text-left border-2 border-yellow-400">
+                <div class="text-3xl mb-3">📱</div>
+                <h3 class="font-jua text-xl text-yellow-300">
+                    4인 온라인
+                </h3>
+                <p class="text-sm text-emerald-100 mt-2">
+                    방 코드 또는 QR로 참가
+                </p>
+            </button>
+
+        </div>
+    </section>
+
+
+    <!-- ==================== ROOM SETUP ==================== -->
+
+    <section
+        id="roomSetupScreen"
+        class="hidden bg-indigo-900/80 rounded-3xl p-6 sm:p-8 border border-indigo-500/30">
+
+        <h2 class="text-3xl font-jua text-yellow-300 text-center mb-2">
+            📱 4인 온라인 멀티플레이
+        </h2>
+
+        <p class="text-center text-indigo-200 text-sm mb-7">
+            방을 만들거나 친구의 방에 참가하세요.
+        </p>
+
+
+        <div class="grid md:grid-cols-2 gap-6">
+
+            <!-- CREATE -->
+
+            <div class="bg-indigo-950/70 rounded-2xl p-6">
+
+                <div class="text-4xl mb-3">👑</div>
+
+                <h3 class="text-xl font-jua mb-3">
+                    방 만들기
+                </h3>
+
+                <input
+                    id="hostNameInput"
+                    maxlength="6"
+                    placeholder="방장 닉네임"
+                    class="w-full bg-indigo-900 border border-indigo-600 rounded-xl p-3 text-center mb-3">
+
+                <button
+                    id="createRoomBtn"
+                    onclick="game.create4PRoom()"
+                    class="w-full bg-emerald-500 hover:bg-emerald-400
+                           text-indigo-950 font-bold py-3 rounded-xl">
+                    ✨ 방 만들기
+                </button>
+
             </div>
-            <h2 class="text-3xl sm:text-5xl font-jua text-white mb-4 leading-tight">
-                서바이벌 맞춤법 배틀!<br><span class="text-yellow-300">최후의 승자가 되어라</span>
+
+
+            <!-- JOIN -->
+
+            <div class="bg-indigo-950/70 rounded-2xl p-6">
+
+                <div class="text-4xl mb-3">🔑</div>
+
+                <h3 class="text-xl font-jua mb-3">
+                    방 참가하기
+                </h3>
+
+                <input
+                    id="joinNameInput"
+                    maxlength="6"
+                    placeholder="내 닉네임"
+                    class="w-full bg-indigo-900 border border-indigo-600 rounded-xl p-3 text-center mb-2">
+
+                <input
+                    id="joinCodeInput"
+                    maxlength="4"
+                    inputmode="numeric"
+                    placeholder="4자리 방 코드"
+                    class="w-full bg-indigo-900 border border-indigo-600 rounded-xl p-3 text-center font-mono text-xl tracking-widest mb-3">
+
+                <button
+                    id="joinRoomBtn"
+                    onclick="game.join4PRoom()"
+                    class="w-full bg-blue-500 hover:bg-blue-400
+                           font-bold py-3 rounded-xl">
+                    🚀 참가하기
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <button
+            onclick="game.showHome()"
+            class="block mx-auto mt-6 text-indigo-300 hover:text-white">
+            ← 돌아가기
+        </button>
+
+    </section>
+
+
+    <!-- ==================== LOBBY ==================== -->
+
+    <section
+        id="lobbyScreen"
+        class="hidden bg-indigo-900/80 rounded-3xl p-6 border border-indigo-500/30">
+
+        <div class="text-center">
+
+            <h2 class="text-3xl font-jua">
+                대기실
+                <span class="text-yellow-300">
+                    <span id="playerCountText">1</span>/4
+                </span>
             </h2>
-            <p class="text-indigo-200 text-sm sm:text-base max-w-xl mx-auto mb-8 leading-relaxed">
-                '봬요 vs 뵈요', '맞히다 vs 맞추다', '안 vs 않' 등 헷갈리는 맞춤법을 맞혀<br class="hidden sm:block">
-                상대 HP를 깎고 <span class="text-emerald-300 font-bold">내 HP는 회복 (+15)</span>하며 승리하세요!
+
+            <p
+                id="lobbyInstruction"
+                class="text-indigo-200 text-sm mt-2 mb-6">
+                친구들이 참가하기를 기다리는 중입니다.
             </p>
 
-            <!-- Mode Selector Cards -->
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto mb-2">
-                <!-- 1P Mode -->
-                <button onclick="game.startBattle('1p')" class="group bg-gradient-to-br from-blue-700 to-indigo-800 hover:from-blue-600 hover:to-indigo-700 p-5 rounded-2xl border-2 border-blue-400/30 shadow-lg text-left transition transform hover:-translate-y-1 relative overflow-hidden">
-                    <div class="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition"></div>
-                    <div class="flex items-center justify-between mb-2 relative z-10">
-                        <span class="text-3xl">🤖</span>
-                        <span class="bg-blue-400/20 text-blue-200 text-[10px] px-2 py-0.5 rounded-full font-bold">혼자 연습</span>
-                    </div>
-                    <h3 class="text-lg font-jua text-yellow-300 mb-1 relative z-10">AI 로봇 대결</h3>
-                    <p class="text-xs text-indigo-100 relative z-10">맞춤법 로봇 '세종봇'과 1:1 진검승부!</p>
-                </button>
+        </div>
 
-                <!-- 2P Local Mode -->
-                <button onclick="game.startBattle('2p')" class="group bg-gradient-to-br from-fuchsia-700 to-pink-800 hover:from-fuchsia-600 hover:to-pink-700 p-5 rounded-2xl border-2 border-pink-400/30 shadow-lg text-left transition transform hover:-translate-y-1 relative overflow-hidden">
-                    <div class="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition"></div>
-                    <div class="flex items-center justify-between mb-2 relative z-10">
-                        <span class="text-3xl">⚔️</span>
-                        <span class="bg-pink-400/20 text-pink-200 text-[10px] px-2 py-0.5 rounded-full font-bold">1기기 2인</span>
-                    </div>
-                    <h3 class="text-lg font-jua text-yellow-300 mb-1 relative z-10">2인 오프라인</h3>
-                    <p class="text-xs text-pink-100 relative z-10">친구와 나란히 앉아 함께 문제 풀기!</p>
-                </button>
 
-                <!-- 4P QR Room Mode -->
-                <button onclick="game.open4PSetup()" class="group bg-gradient-to-br from-emerald-700 to-teal-800 hover:from-emerald-600 hover:to-teal-700 p-5 rounded-2xl border-2 border-yellow-400/60 shadow-lg text-left transition transform hover:-translate-y-1 relative overflow-hidden ring-2 ring-yellow-400/30 animate-pulse-fast">
-                    <div class="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition"></div>
-                    <div class="flex items-center justify-between mb-2 relative z-10">
-                        <span class="text-3xl">📱</span>
-                        <span class="bg-yellow-400 text-indigo-900 text-[10px] px-2 py-0.5 rounded-full font-bold">강력 추천🔥</span>
-                    </div>
-                    <h3 class="text-lg font-jua text-yellow-300 mb-1 relative z-10">4인 QR 멀티 대결</h3>
-                    <p class="text-xs text-emerald-100 relative z-10">스마트폰으로 접속해 다같이 서바이벌!</p>
-                </button>
-            </div>
-        </section>
+        <div class="grid md:grid-cols-2 gap-6">
 
-        <!-- 4P MULTIPLAYER ROOM SETUP SCREEN -->
-        <section id="roomSetupScreen" class="hidden bg-indigo-900/80 backdrop-blur-md rounded-3xl p-6 sm:p-8 border border-indigo-500/30 shadow-2xl text-center">
-            <h2 class="text-2xl sm:text-3xl font-jua text-yellow-300 mb-2">📱 4인 온라인 멀티플레이</h2>
-            <p class="text-xs sm:text-sm text-indigo-200 mb-6">방을 만들거나 방 코드를 입력해 친구들과 함께하세요.</p>
+            <!-- QR -->
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
-                <!-- Create Room Panel -->
-                <div class="bg-indigo-950/60 p-5 rounded-2xl border border-indigo-700/50 flex flex-col justify-between">
-                    <div>
-                        <div class="text-3xl mb-2">👑</div>
-                        <h3 class="text-xl font-jua text-white mb-2">방 만들기 (호스트)</h3>
-                        <p class="text-xs text-indigo-300 mb-4 h-8">내가 방장이 되어 친구들을 초대합니다.</p>
-                        <input id="hostNameInput" type="text" placeholder="방장 닉네임 (최대 6자)" maxlength="6" class="w-full bg-indigo-900/80 border border-indigo-600 rounded-xl px-3 py-2.5 text-center text-sm font-bold text-white mb-3 focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition placeholder-indigo-400">
-                    </div>
-                    <button id="createRoomBtn" onclick="game.create4PRoom()" class="w-full bg-emerald-500 hover:bg-emerald-400 text-indigo-950 font-jua text-base py-3 rounded-xl transition font-bold shadow-lg flex items-center justify-center gap-2">
-                        <span>✨ 방 만들기 & QR 생성</span>
-                    </button>
+            <div class="bg-white/10 rounded-2xl p-5 text-center">
+
+                <div
+                    id="qrcode"
+                    class="bg-white p-3 rounded-xl w-fit mx-auto mb-4">
                 </div>
 
-                <!-- Join Room Panel -->
-                <div class="bg-indigo-950/60 p-5 rounded-2xl border border-indigo-700/50 flex flex-col justify-between">
-                    <div>
-                        <div class="text-3xl mb-2">🔑</div>
-                        <h3 class="text-xl font-jua text-white mb-2">방 입장하기</h3>
-                        <p class="text-xs text-indigo-300 mb-4 h-8">친구의 방 코드 4자리를 입력하세요.</p>
-                        <input id="joinNameInput" type="text" placeholder="내 닉네임 (최대 6자)" maxlength="6" class="w-full bg-indigo-900/80 border border-indigo-600 rounded-xl px-3 py-2 text-center text-sm font-bold text-white mb-2 focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition placeholder-indigo-400">
-                        <input id="joinCodeInput" type="text" placeholder="방 코드 (예: 1234)" maxlength="4" class="w-full bg-indigo-900/80 border border-indigo-600 rounded-xl px-3 py-2 text-center font-mono text-lg font-bold text-yellow-300 tracking-widest uppercase mb-3 focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition placeholder-indigo-400">
-                    </div>
-                    <button id="joinRoomBtn" onclick="game.join4PRoom()" class="w-full bg-blue-500 hover:bg-blue-400 text-white font-jua text-base py-3 rounded-xl transition font-bold shadow-lg flex items-center justify-center gap-2">
-                        <span>🚀 참가하기</span>
-                    </button>
-                </div>
-            </div>
-
-            <button onclick="game.showHome()" class="mt-6 text-sm font-bold text-indigo-300 hover:text-white transition flex items-center justify-center gap-1 mx-auto bg-indigo-950/50 px-4 py-2 rounded-full">
-                <span>←</span> 돌아가기
-            </button>
-        </section>
-
-        <!-- LOBBY WAITING SCREEN WITH QR CODE -->
-        <section id="lobbyScreen" class="hidden bg-indigo-900/80 backdrop-blur-md rounded-3xl p-6 sm:p-8 border border-indigo-500/30 shadow-2xl text-center relative">
-            
-            <div id="lobbyHostBadge" class="hidden absolute top-4 right-4 bg-yellow-400 text-indigo-900 text-xs px-2 py-1 rounded font-bold shadow">
-                방장 권한
-            </div>
-
-            <h2 class="text-2xl sm:text-3xl font-jua text-white mb-1">
-                대기실 <span class="text-indigo-400">|</span> <span id="playerCountText" class="text-yellow-300">1</span>/4명
-            </h2>
-            <p id="lobbyInstruction" class="text-xs sm:text-sm text-indigo-200 mb-6">다른 참가자를 기다리고 있습니다...</p>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center max-w-2xl mx-auto mb-6">
-                <!-- QR Code Box -->
-                <div class="bg-white/10 p-4 rounded-2xl border border-white/20 flex flex-col items-center justify-center backdrop-blur-sm">
-                    <div class="bg-white p-2 rounded-xl mb-3 shadow-inner">
-                        <div id="qrcode" class="w-32 h-32 sm:w-40 sm:h-40 flex items-center justify-center text-slate-400 text-xs">QR 생성중</div>
-                    </div>
-                    <div class="text-sm font-bold text-indigo-100">
-                        방 코드: <span id="lobbyCodeDisplay" class="font-mono text-xl sm:text-2xl text-yellow-300 tracking-wider bg-black/30 px-3 py-1 rounded-lg ml-1">0000</span>
-                    </div>
+                <div class="text-sm">
+                    방 코드
                 </div>
 
-                <!-- Joined Players List -->
-                <div class="bg-indigo-950/60 p-4 rounded-2xl border border-indigo-700/50 h-full flex flex-col">
-                    <div class="text-sm font-jua text-yellow-300 text-left mb-3 flex items-center gap-2">
-                        <span>👥 참가자 목록</span>
-                        <div class="flex-1 h-px bg-indigo-700/50"></div>
-                    </div>
-                    <div id="playerLobbyList" class="flex flex-col gap-2.5 overflow-y-auto flex-1 max-h-48 pr-1">
-                        <!-- Dynamic Player Items -->
-                    </div>
+                <div
+                    id="lobbyCodeDisplay"
+                    class="font-mono text-3xl font-bold text-yellow-300 tracking-widest">
+                    0000
                 </div>
-            </div>
 
-            <div class="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
-                <button id="startGameHostBtn" onclick="game.startMultiplayerGame()" class="hidden flex-1 bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-indigo-950 font-jua text-lg py-3 rounded-xl transition font-bold shadow-lg transform hover:scale-105 active:scale-95">
-                    ⚔️ 대결 시작!
-                </button>
-                <div id="waitingHostText" class="hidden flex-1 bg-indigo-800/50 text-indigo-200 font-jua text-lg py-3 rounded-xl border border-indigo-600/50 flex items-center justify-center gap-2">
-                    <span class="animate-spin text-xl">⏳</span> 방장 시작 대기중...
-                </div>
-                <button onclick="game.leaveRoom()" class="bg-indigo-800 hover:bg-indigo-700 text-slate-200 font-jua text-sm px-4 py-3 rounded-xl transition border border-indigo-600/50">
-                    나가기
-                </button>
-            </div>
-        </section>
-
-        <!-- BATTLE SCREEN -->
-        <section id="battleScreen" class="hidden flex-col gap-4 h-full relative">
-            
-            <!-- Particles Canvas Overlay for background effects -->
-            <canvas id="bgCanvas" class="absolute inset-0 pointer-events-none z-0 opacity-30"></canvas>
-
-            <!-- CHARACTERS & HEALTH STATUS BARS GRID -->
-            <div id="playersGrid" class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 bg-indigo-900/60 backdrop-blur-sm rounded-2xl p-2 sm:p-3 border border-indigo-500/30 shadow-xl relative z-10">
-                <!-- Dynamic Player HP Cards populated by JS -->
-            </div>
-
-            <!-- TURN & TIMER HEADER -->
-            <div class="bg-indigo-950/80 rounded-2xl p-3 sm:p-4 border border-indigo-500/30 flex flex-col gap-3 shadow-lg relative z-10">
-                <div class="flex justify-between w-full items-center">
-                    <div class="flex items-center gap-2">
-                        <span id="turnBadge" class="bg-yellow-400 text-indigo-950 px-3 py-1 rounded-full text-xs sm:text-sm font-bold font-jua shadow">
-                            대결 준비!
-                        </span>
-                        <span id="multiplayerStatus" class="hidden text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-2 py-0.5 rounded-full">
-                            온라인 모드
-                        </span>
-                    </div>
-                    <span id="stageProgress" class="text-xs sm:text-sm text-indigo-200 font-bold bg-indigo-900/80 px-3 py-1 rounded-full border border-indigo-700">
-                        라운드 1 / 10
-                    </span>
-                </div>
-                
-                <!-- Time Bar -->
-                <div class="w-full bg-slate-900 h-3 rounded-full overflow-hidden border border-indigo-900/50 relative shadow-inner">
-                    <div id="timerBar" class="bg-gradient-to-r from-yellow-300 to-amber-500 h-full w-full transition-all ease-linear relative">
-                        <div class="absolute inset-0 bg-white/20 w-full h-full animate-pulse"></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- QUIZ CARD -->
-            <div id="quizCard" class="bg-slate-900/80 backdrop-blur-md rounded-2xl p-5 sm:p-8 border border-indigo-400/30 shadow-2xl flex flex-col items-center text-center relative overflow-hidden flex-1 justify-center z-10">
-                
-                <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"></div>
-
-                <!-- Visual Attack Impact Canvas Overlay -->
-                <canvas id="attackCanvas" class="absolute inset-0 pointer-events-none z-20 w-full h-full"></canvas>
-
-                <div id="quizContent" class="w-full flex flex-col items-center transition-opacity duration-300">
-                    <span id="questionCategory" class="bg-indigo-800/80 text-indigo-100 text-[11px] sm:text-xs px-4 py-1.5 rounded-full font-bold mb-3 border border-indigo-600/50 shadow-sm">
-                        카테고리
-                    </span>
-
-                    <h3 class="text-indigo-300 text-xs sm:text-sm mb-3 font-semibold tracking-wide">빈칸에 들어갈 알맞은 맞춤법은?</h3>
-
-                    <!-- Question Sentence -->
-                    <div id="questionText" class="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-6 leading-relaxed font-jua bg-indigo-950/50 p-4 sm:p-6 rounded-2xl w-full border border-indigo-800/50 shadow-inner min-h-[100px] flex items-center justify-center break-keep">
-                        문제가 여기에 표시됩니다.
-                    </div>
-
-                    <!-- Answer Options Grid -->
-                    <div id="optionsContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 w-full z-10">
-                        <!-- Buttons inserted dynamically -->
-                    </div>
-                </div>
-                
-                <!-- Waiting for others overlay (Multiplayer) -->
-                <div id="waitingOthersOverlay" class="hidden absolute inset-0 bg-slate-900/90 backdrop-blur-sm z-30 flex flex-col items-center justify-center">
-                    <div class="text-4xl mb-3 animate-spin">⏳</div>
-                    <h3 class="text-lg font-jua text-yellow-300 mb-1">답변 완료!</h3>
-                    <p class="text-xs text-indigo-200">다른 플레이어의 선택을 기다리는 중...</p>
-                </div>
-            </div>
-
-            <!-- EXPLANATION MODAL -->
-            <div id="explanationBox" class="hidden bg-indigo-950/95 backdrop-blur-xl border border-indigo-500/50 rounded-2xl p-5 shadow-2xl relative z-20">
-                <div class="flex items-start gap-4">
-                    <div id="resultIconBox" class="w-12 h-12 rounded-full flex items-center justify-center text-2xl shrink-0 shadow-inner">
-                        <!-- Icon injected by JS -->
-                    </div>
-                    <div class="flex-1 text-left">
-                        <div id="resultTitle" class="font-jua text-lg sm:text-xl mb-1.5">결과 제목</div>
-                        <p id="resultText" class="text-sm text-slate-200 mb-3 leading-relaxed bg-indigo-900/50 p-3 rounded-lg border border-indigo-800/50 break-keep">
-                            해설 내용이 여기에 들어갑니다.
-                        </p>
-                        <div id="tipBox" class="bg-indigo-900/80 p-2.5 rounded-lg border border-indigo-600/50 text-xs sm:text-sm text-indigo-100 flex gap-2 shadow-sm font-semibold">
-                            <span class="shrink-0">💡</span>
-                            <span id="tipText">꿀팁 내용</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div id="nextTurnBtnWrapper" class="mt-4">
-                    <button id="nextBtn" onclick="game.proceedNextTurn()" class="w-full bg-yellow-400 hover:bg-yellow-300 text-indigo-950 font-jua text-base py-3 rounded-xl transition shadow-lg font-bold transform hover:-translate-y-0.5">
-                        다음 라운드로 ➔
-                    </button>
-                </div>
-                <div id="waitingHostNextText" class="hidden mt-4 text-center text-sm font-bold text-indigo-300 bg-indigo-900/50 py-2 rounded-xl">
-                    방장이 다음 라운드를 준비중입니다...
-                </div>
-            </div>
-        </section>
-
-        <!-- GAME OVER / RESULTS SCREEN -->
-        <section id="resultScreen" class="hidden bg-indigo-900/80 backdrop-blur-md rounded-3xl p-6 sm:p-10 border border-indigo-500/30 shadow-2xl text-center relative overflow-hidden">
-            <!-- Confetti Canvas -->
-            <canvas id="confettiCanvas" class="absolute inset-0 pointer-events-none z-0"></canvas>
-
-            <div class="relative z-10">
-                <div id="winnerBadge" class="text-5xl sm:text-6xl mb-4 animate-bounce">🏆</div>
-                <h2 id="winnerText" class="text-3xl sm:text-5xl font-jua text-yellow-300 mb-2 drop-shadow-md">
-                    최종 결과
-                </h2>
-                <p id="winnerSubtext" class="text-indigo-100 text-sm sm:text-base mb-8 font-semibold">
-                    치열한 맞춤법 대결이 종료되었습니다!
+                <p class="text-xs text-indigo-300 mt-3">
+                    QR을 친구에게 보여주세요.
                 </p>
 
-                <!-- Leaderboard Table -->
-                <div id="leaderboardBox" class="bg-indigo-950/80 rounded-2xl p-4 sm:p-5 border border-indigo-700/50 max-w-lg mx-auto mb-8 shadow-inner">
-                    <div class="text-sm font-bold text-indigo-200 mb-3 text-left border-b border-indigo-800 pb-2 flex justify-between">
-                        <span>순위표</span>
-                        <span>남은 체력</span>
-                    </div>
-                    <div id="leaderboardList" class="flex flex-col gap-2">
-                        <!-- Dynamic Leaderboard Items -->
-                    </div>
-                </div>
-
-                <div class="flex flex-col sm:flex-row gap-3 justify-center max-w-md mx-auto">
-                    <button onclick="game.restartBattle()" class="flex-1 bg-yellow-400 hover:bg-yellow-300 text-indigo-950 font-jua text-base py-3.5 rounded-xl transition font-bold shadow-lg transform hover:-translate-y-0.5">
-                        🔄 다시 도전하기
-                    </button>
-                    <button onclick="game.showHome()" class="flex-1 bg-indigo-800 hover:bg-indigo-700 text-white font-jua text-base py-3.5 rounded-xl transition font-bold border border-indigo-600/50 shadow-lg">
-                        🏠 메인 화면으로
-                    </button>
-                </div>
             </div>
-        </section>
 
-    </main>
 
-    <!-- FOOTER -->
-    <footer class="w-full text-center py-4 text-xs text-indigo-300/70 border-t border-indigo-900/40 relative z-10 bg-slate-950/30">
-        <p>초등 6학년 국어 맞춤법 서바이벌 마스터 &copy; 2026. 올바른 한글 사용을 응원합니다!</p>
-    </footer>
+            <!-- PLAYERS -->
 
-    <script>
-        // Comprehensive 6th Grade Korean Spelling Questions Database
-        const QUIZ_DATABASE = [
-            {
-                category: "뵈다 / 봬다 (높임말)",
-                sentence: "선생님, 내일 학교에서 다시 [ ??? ].",
-                options: ["뵈요", "봬요"],
-                correct: 1,
-                explanation: "'봬요'는 '뵈어요'가 줄어든 형태입니다. 존대의 뜻으로 쓰일 때는 '봬요'가 올바른 표현입니다.",
-                tip: "'하'를 넣어 자연스러우면 '뵈', '해'를 넣어 자연스러우면 '봬'! (해요 -> 봬요)"
-            },
-            {
-                category: "뵈다 / 봬다 (높임말)",
-                sentence: "내일 할머니를 [ ??? ] 가기로 약속했습니다.",
-                options: ["뵈러", "봬러"],
-                correct: 0,
-                explanation: "'뵈다'의 어간 '뵈-' 뒤에 어미 '-러'가 결합하여 '뵈러'가 됩니다.",
-                tip: "'하'를 넣으면 '하러'(자연스러움), '해'를 넣으면 '해러'(어색함). 따라서 '뵈러'가 맞습니다!"
-            },
-            {
-                category: "맞히다 / 맞추다",
-                sentence: "궁수가 화살로 과녁의 중앙을 정확히 [ ??? ].",
-                options: ["맞혔다", "맞췄다"],
-                correct: 0,
-                explanation: "'맞히다'는 적중시키거나 정답을 알아내는 것이고, '맞추다'는 서로 비교하거나 단위를 맞추는 것입니다.",
-                tip: "과녁이나 퀴즈 정답은 '맞히다'! 신발이나 답안지를 비교해보는 것은 '맞추다'!"
-            },
-            {
-                category: "맞히다 / 맞추다",
-                sentence: "시험이 끝난 후 친구와 정답을 서로 [ ??? ] 보았다.",
-                options: ["맞혀", "맞춰"],
-                correct: 1,
-                explanation: "답안지나 생각을 서로 대어 비교해보는 동작은 '맞추다'가 올바릅니다.",
-                tip: "서로 대어보거나 일정하게 줄을 세우는 행동은 '맞추다'!"
-            },
-            {
-                category: "안 / 않 (부정 표현)",
-                sentence: "오늘은 날씨가 별로 춥지 [ ??? ].",
-                options: ["안다", "않다"],
-                correct: 1,
-                explanation: "'않다'는 '아니하다'의 줄임말로 어미 뒤에서 보조 용언으로 쓰입니다.",
-                tip: "'아니'를 넣었을 때 말이 자연스러우면 '안', '아니하'를 넣었을 때 자연스러우면 '않'!"
-            },
-            {
-                category: "안 / 않 (부정 표현)",
-                sentence: "숙제를 [ ??? ] 하고 놀러 가면 선생님께 혼나요.",
-                options: ["안", "않"],
-                correct: 0,
-                explanation: "'안'은 부사 '아니'의 줄임말로 용언 앞에 바로 쓰입니다.",
-                tip: "단어 앞에 바로 붙는 부정 부사는 '안'! (예: 안 먹다, 안 가다)"
-            },
-            {
-                category: "어떡해 / 어떻게",
-                sentence: "지갑을 잃어버렸는데 이제 [ ??? ] 하면 좋지?",
-                options: ["어떡해", "어떻게"],
-                correct: 1,
-                explanation: "'어떻게'는 '어떠하다'의 부사형으로 뒤의 동사(하면)를 꾸며줍니다.",
-                tip: "문장 중간에서 뒤의 말을 꾸미면 '어떻게', 문장 끝에서 감탄/질문으로 끝나면 '어떡해'!"
-            },
-            {
-                category: "어떡해 / 어떻게",
-                sentence: "약속 시간에 늦었는데 정말 [ ??? ]!",
-                options: ["어떡해", "어떻게"],
-                correct: 0,
-                explanation: "'어떡해'는 '어떻게 해'가 줄어든 말로 문장 끝에 쓰입니다.",
-                tip: "'어떻게 해'의 줄임말은 '어떡해'!"
-            },
-            {
-                category: "가리키다 / 가르치다",
-                sentence: "선생님께서 우리에게 한글의 우수성을 [ ??? ].",
-                options: ["가리키셨다", "가르치셨다"],
-                correct: 1,
-                explanation: "지식이나 교양을 알려주는 것은 '가르치다', 손가락이나 방향을 지적하는 것은 '가리키다'입니다.",
-                tip: "선생님이 수업하는 건 '가르치다'! 손가락으로 가리키는 건 '가리키다'!"
-            },
-            {
-                category: "넘어 / 너머",
-                sentence: "저 높은 산 [ ??? ] 작은 시골 마을이 있다.",
-                options: ["넘어", "너머"],
-                correct: 1,
-                explanation: "'너머'는 경계나 공간의 건너편 장소를 뜻하고, '넘어'는 움직임/동사를 뜻합니다.",
-                tip: "장소나 위치를 말할 때는 '너머', 넘어가는 행동에는 '넘어'!"
-            },
-            {
-                category: "낫다 / 낳다 / 닯다",
-                sentence: "충분히 휴식을 취하니 감기가 훨씬 [ ??? ].",
-                options: ["낫다", "낳다"],
-                correct: 0,
-                explanation: "병이 고쳐지거나 더 좋은 상태는 '낫다'이고, 아이나 알을 출산하는 것은 '낳다'입니다.",
-                tip: "건강이나 상태가 좋아지는 건 '낫다'! 아이를 출산하는 건 '낳다'!"
-            },
-            {
-                category: "매다 / 메다",
-                sentence: "무거운 책가방을 어깨에 [ ??? ] 학교로 갔다.",
-                options: ["매고", "메고"],
-                correct: 1,
-                explanation: "어깨에 걸치거나 지는 것은 '메다', 끈이나 신발을 묶는 것은 '매다'입니다.",
-                tip: "가방이나 배낭은 '메다'! 넥타이나 신발끈은 '매다'!"
-            },
-            {
-                category: "되 / 돼",
-                sentence: "벌써 초등학교 최고학년이 [ ??? ] 기쁘다.",
-                options: ["되어서", "돼어서"],
-                correct: 0,
-                explanation: "'돼'는 '되어'의 줄임말이므로 '돼어서'는 '되어어서'가 되어 틀린 표현입니다.",
-                tip: "'하'를 넣어 어색하지 않으면 '되', '해'를 넣어야 자연스러우면 '돼'!"
-            },
-            {
-                category: "되 / 돼",
-                sentence: "더 이상 시간을 지체하면 안 [ ??? ].",
-                options: ["되", "돼"],
-                correct: 1,
-                explanation: "'돼'는 '되어'의 줄임말로 문장의 끝에 그대로 어간 '되'만 올 수 없으므로 '돼'가 맞습니다.",
-                tip: "문장 맨 끝에는 '되' 혼자 올 수 없고 '돼'가 와야 합니다!"
-            },
-            {
-                category: "으로서 / 으로써",
-                sentence: "그것은 학급 반장[ ??? ] 해야 할 마땅한 의무이다.",
-                options: ["으로서", "으로써"],
-                correct: 0,
-                explanation: "'으로서'는 자격이나 신분을 나타내고, '으로써'는 수단이나 도구를 나타냅니다.",
-                tip: "신분이나 자격(~입장에서)에는 '으로서'! 도구나 재료(~를 가지고)에는 '으로써'!"
-            },
-            {
-                category: "던지 / 든지",
-                sentence: "사과를 먹[ ??? ] 배를 먹[ ??? ] 마음대로 선택해라.",
-                options: ["던지", "든지"],
-                correct: 1,
-                explanation: "선택이나 물건을 나열할 때는 '든지', 과거의 일을 떠올릴 때는 '던지'를 씁니다.",
-                tip: "선택할 때는 '든지'! (예: 오든지 말든지) 과거 일을 회상할 때는 '던지'! (예: 어찌나 춥던지)"
-            },
-            {
-                category: "띠다 / 띄다",
-                sentence: "게시판의 글씨가 한눈에 잘 [ ??? ].",
-                options: ["띈다", "띤다"],
-                correct: 0,
-                explanation: "'눈에 띄다'는 '뜨이다'의 줄임말로 눈에 보이다라는 뜻입니다.",
-                tip: "눈에 띄다, 간격을 띄우다 = '띄다'! 미소를 띠다, 성격을 띠다 = '띠다'!"
-            },
-            {
-                category: "부딪치다 / 부딪히다",
-                sentence: "파도가 커다란 바위에 강하게 [ ??? ].",
-                options: ["부딪쳤다", "부딪혔다"],
-                correct: 0,
-                explanation: "'부딪치다'는 능동적으로 부딪히는 행동을 강조하는 표현입니다.",
-                tip: "주체가 능동적으로 부딪치는 건 '부딪치다', 강제로 부딪힘을 당하는 건 '부딪히다'!"
-            },
-            {
-                category: "에요 / 예요",
-                sentence: "제가 가장 좋아하는 과일은 사과[ ??? ].",
-                options: ["에요", "예요"],
-                correct: 1,
-                explanation: "받침이 없는 체언(사과) 뒤에는 '예요'가 붙고, 받침이 있는 체언(학생) 뒤에는 '이에'가 붙습니다.",
-                tip: "받침이 없으면 '예요'! (사과예요) 받침이 있으면 '이에요/에요'! (책이에요)"
-            },
-            {
-                category: "웬일 / 왠지",
-                sentence: "네가 이렇게 일찍 일어나다니 이게 [ ??? ]이니?",
-                options: ["웬일", "왠일"],
-                correct: 0,
-                explanation: "'웬일'은 '어찌 된 일'라는 뜻의 표준어입니다. '왠'은 '왠지'에만 쓰입니다.",
-                tip: "'왠지' 빼고는 전부 '웬'으로 쓴다고 기억하세요! (웬일, 웬 떡이야)"
+            <div class="bg-indigo-950/70 rounded-2xl p-5">
+
+                <h3 class="font-jua text-yellow-300 mb-3">
+                    👥 참가자
+                </h3>
+
+                <div
+                    id="playerLobbyList"
+                    class="space-y-2">
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="mt-6">
+
+            <button
+                id="startGameHostBtn"
+                onclick="game.startMultiplayerGame()"
+                class="hidden w-full bg-yellow-400 hover:bg-yellow-300
+                       text-indigo-950 font-jua text-xl py-3 rounded-xl">
+                ⚔️ 대결 시작!
+            </button>
+
+            <div
+                id="waitingHostText"
+                class="hidden text-center bg-indigo-950/70 p-3 rounded-xl text-indigo-300">
+                ⏳ 방장의 게임 시작을 기다리는 중...
+            </div>
+
+        </div>
+
+
+        <button
+            onclick="game.leaveRoom()"
+            class="block mx-auto mt-5 text-indigo-300 hover:text-white">
+            나가기
+        </button>
+
+    </section>
+
+
+    <!-- ==================== BATTLE ==================== -->
+
+    <section
+        id="battleScreen"
+        class="hidden flex-col gap-4">
+
+        <div
+            id="playersGrid"
+            class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        </div>
+
+
+        <div class="bg-indigo-950/80 rounded-2xl p-4">
+
+            <div class="flex justify-between items-center mb-3">
+
+                <span
+                    id="turnBadge"
+                    class="bg-yellow-400 text-indigo-950 px-3 py-1 rounded-full font-bold">
+                    라운드
+                </span>
+
+                <span
+                    id="stageProgress"
+                    class="text-indigo-200 text-sm">
+                    라운드 1 / 10
+                </span>
+
+            </div>
+
+            <div class="bg-slate-900 rounded-full h-3 overflow-hidden">
+
+                <div
+                    id="timerBar"
+                    class="bg-yellow-400 h-full"
+                    style="width:100%">
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div
+            class="bg-slate-900/90 rounded-2xl p-5 sm:p-8 text-center">
+
+            <div
+                id="questionCategory"
+                class="inline-block bg-indigo-800 px-4 py-2 rounded-full text-xs mb-4">
+                맞춤법
+            </div>
+
+            <h3 class="text-indigo-300 text-sm mb-3">
+                빈칸에 들어갈 알맞은 맞춤법은?
+            </h3>
+
+            <div
+                id="questionText"
+                class="font-jua text-xl sm:text-3xl bg-indigo-950 rounded-2xl p-5 mb-6">
+                문제
+            </div>
+
+            <div
+                id="optionsContainer"
+                class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            </div>
+
+        </div>
+
+
+        <div
+            id="waitingOthersOverlay"
+            class="hidden fixed inset-0 bg-black/80 z-40
+                   items-center justify-center text-center">
+
+            <div>
+                <div class="text-5xl mb-4">⏳</div>
+
+                <h2 class="font-jua text-2xl text-yellow-300">
+                    답변 완료!
+                </h2>
+
+                <p class="text-indigo-200 mt-2">
+                    다른 플레이어의 답변을 기다리는 중입니다.
+                </p>
+            </div>
+
+        </div>
+
+
+        <div
+            id="explanationBox"
+            class="hidden bg-indigo-950 rounded-2xl p-5">
+
+            <div
+                id="resultTitle"
+                class="font-jua text-2xl text-yellow-300 mb-3">
+            </div>
+
+            <p
+                id="resultText"
+                class="text-sm text-indigo-100 mb-3">
+            </p>
+
+            <div
+                class="bg-indigo-900 rounded-xl p-3 text-sm text-indigo-200">
+                💡
+                <span id="tipText"></span>
+            </div>
+
+            <button
+                id="nextBtn"
+                onclick="game.proceedNextTurn()"
+                class="w-full bg-yellow-400 hover:bg-yellow-300
+                       text-indigo-950 font-jua py-3 rounded-xl mt-4">
+                다음 라운드
+            </button>
+
+            <div
+                id="waitingHostNextText"
+                class="hidden text-center text-indigo-300 mt-4">
+                방장이 다음 라운드를 준비하고 있습니다...
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ==================== RESULT ==================== -->
+
+    <section
+        id="resultScreen"
+        class="hidden bg-indigo-900/80 rounded-3xl p-8 text-center">
+
+        <div class="text-6xl mb-4">
+            🏆
+        </div>
+
+        <h2
+            id="winnerText"
+            class="text-4xl font-jua text-yellow-300">
+            승리!
+        </h2>
+
+        <p
+            id="winnerSubtext"
+            class="text-indigo-200 mt-2 mb-7">
+        </p>
+
+        <div
+            id="leaderboardList"
+            class="max-w-lg mx-auto space-y-2 mb-7">
+        </div>
+
+        <div class="flex gap-3">
+
+            <button
+                onclick="game.restartBattle()"
+                class="flex-1 bg-yellow-400 text-indigo-950 font-bold py-3 rounded-xl">
+                🔄 다시하기
+            </button>
+
+            <button
+                onclick="game.showHome()"
+                class="flex-1 bg-indigo-700 py-3 rounded-xl">
+                🏠 처음으로
+            </button>
+
+        </div>
+
+    </section>
+
+</main>
+
+
+<script>
+
+/* =========================================================
+   QUIZ DATABASE
+========================================================= */
+
+const QUIZ_DATABASE = [
+
+    {
+        category:"뵈다 / 봬요",
+        sentence:"선생님, 내일 학교에서 다시 [ ??? ].",
+        options:["뵈요","봬요"],
+        correct:1,
+        explanation:"'봬요'는 '뵈어요'가 줄어든 말입니다.",
+        tip:"'뵈어요' → '봬요'"
+    },
+
+    {
+        category:"맞히다 / 맞추다",
+        sentence:"궁수가 과녁의 중앙을 정확히 [ ??? ].",
+        options:["맞혔다","맞췄다"],
+        correct:0,
+        explanation:"정답이나 목표물을 적중시키는 것은 '맞히다'입니다.",
+        tip:"정답은 맞히고, 서로 비교할 때는 맞춥니다."
+    },
+
+    {
+        category:"안 / 않",
+        sentence:"오늘은 날씨가 별로 춥지 [ ??? ].",
+        options:["안다","않다"],
+        correct:1,
+        explanation:"'춥지 않다'가 올바른 표현입니다.",
+        tip:"'않다'는 보조 용언으로 사용됩니다."
+    },
+
+    {
+        category:"어떡해 / 어떻게",
+        sentence:"약속 시간에 늦었는데 정말 [ ??? ]!",
+        options:["어떡해","어떻게"],
+        correct:0,
+        explanation:"'어떡해'는 '어떻게 해'가 줄어든 말입니다.",
+        tip:"문장 끝에서 감탄할 때 '어떡해'"
+    },
+
+    {
+        category:"가리키다 / 가르치다",
+        sentence:"선생님께서 우리에게 한글의 우수성을 [ ??? ].",
+        options:["가리키셨다","가르치셨다"],
+        correct:1,
+        explanation:"지식이나 내용을 알려 주는 것은 '가르치다'입니다.",
+        tip:"수업은 가르치고, 손가락으로 방향을 가리킵니다."
+    },
+
+    {
+        category:"넘어 / 너머",
+        sentence:"저 높은 산 [ ??? ] 작은 마을이 있다.",
+        options:["넘어","너머"],
+        correct:1,
+        explanation:"건너편의 장소를 뜻할 때는 '너머'입니다.",
+        tip:"장소·공간의 건너편은 '너머'"
+    },
+
+    {
+        category:"낫다 / 낳다",
+        sentence:"충분히 쉬니 감기가 훨씬 [ ??? ].",
+        options:["낫다","낳다"],
+        correct:0,
+        explanation:"병이나 상태가 좋아지는 것은 '낫다'입니다.",
+        tip:"병이 좋아지는 것은 낫다."
+    },
+
+    {
+        category:"매다 / 메다",
+        sentence:"무거운 책가방을 어깨에 [ ??? ].",
+        options:["매고","메고"],
+        correct:1,
+        explanation:"가방을 어깨에 지는 것은 '메다'입니다.",
+        tip:"가방은 메고, 신발끈은 맵니다."
+    },
+
+    {
+        category:"되 / 돼",
+        sentence:"더 이상 시간을 지체하면 안 [ ??? ].",
+        options:["되","돼"],
+        correct:1,
+        explanation:"문장 끝에서는 '돼'가 자연스럽습니다.",
+        tip:"'되어'로 바꾸어 확인해 보세요."
+    },
+
+    {
+        category:"으로서 / 으로써",
+        sentence:"학급 반장[ ??? ] 해야 할 의무이다.",
+        options:["으로서","으로써"],
+        correct:0,
+        explanation:"자격이나 신분을 나타낼 때는 '으로서'입니다.",
+        tip:"자격 = 으로서 / 수단 = 으로써"
+    },
+
+    {
+        category:"던지 / 든지",
+        sentence:"사과를 먹[ ??? ] 배를 먹[ ??? ] 마음대로 선택해라.",
+        options:["던지","든지"],
+        correct:1,
+        explanation:"선택을 나타낼 때는 '든지'를 사용합니다.",
+        tip:"선택 = 든지"
+    },
+
+    {
+        category:"띠다 / 띄다",
+        sentence:"게시판의 글씨가 한눈에 잘 [ ??? ].",
+        options:["띈다","띤다"],
+        correct:0,
+        explanation:"'눈에 띄다'가 올바른 표현입니다.",
+        tip:"눈에 띄다 = 띄다"
+    },
+
+    {
+        category:"부딪치다 / 부딪히다",
+        sentence:"파도가 바위에 강하게 [ ??? ].",
+        options:["부딪쳤다","부딪혔다"],
+        correct:0,
+        explanation:"주체가 능동적으로 부딪히는 상황에서는 '부딪치다'가 쓰입니다.",
+        tip:"능동적으로 부딪치다."
+    },
+
+    {
+        category:"에요 / 예요",
+        sentence:"제가 좋아하는 과일은 사과[ ??? ].",
+        options:["에요","예요"],
+        correct:1,
+        explanation:"받침이 없는 말 뒤에는 '예요'를 사용합니다.",
+        tip:"사과예요."
+    },
+
+    {
+        category:"웬일 / 왠일",
+        sentence:"네가 이렇게 일찍 일어나다니 이게 [ ??? ]이니?",
+        options:["웬일","왠일"],
+        correct:0,
+        explanation:"'웬일'이 올바른 표현입니다.",
+        tip:"'왠지'를 제외하면 대부분 '웬'입니다."
+    }
+
+];
+
+
+/* =========================================================
+   SOUND
+========================================================= */
+
+class SoundEngine {
+
+    constructor(){
+        this.ctx=null;
+        this.muted=false;
+    }
+
+    init(){
+
+        if(!this.ctx){
+
+            const AudioContext =
+                window.AudioContext ||
+                window.webkitAudioContext;
+
+            if(AudioContext){
+                this.ctx=new AudioContext();
             }
+        }
+
+        if(this.ctx && this.ctx.state==="suspended"){
+            this.ctx.resume();
+        }
+    }
+
+    beep(freq,duration){
+
+        if(this.muted) return;
+
+        this.init();
+
+        if(!this.ctx) return;
+
+        const osc=this.ctx.createOscillator();
+        const gain=this.ctx.createGain();
+
+        osc.frequency.value=freq;
+
+        gain.gain.setValueAtTime(.15,this.ctx.currentTime);
+
+        gain.gain.exponentialRampToValueAtTime(
+            .001,
+            this.ctx.currentTime+duration
+        );
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+
+        osc.start();
+        osc.stop(this.ctx.currentTime+duration);
+    }
+
+    playClick(){
+        this.beep(600,.06);
+    }
+
+    playCorrect(){
+        this.beep(800,.15);
+    }
+
+    playWrong(){
+        this.beep(180,.25);
+    }
+
+}
+
+
+/* =========================================================
+   GAME CONTROLLER
+========================================================= */
+
+class GameController {
+
+    constructor(){
+
+        this.sound=new SoundEngine();
+
+        this.mode="1p";
+
+        this.players=[];
+
+        this.totalRounds=10;
+
+        this.currentRound=0;
+
+        this.currentQuestion=null;
+
+        this.shuffledQuestions=[];
+
+        this.submittedAnswers={};
+
+        this.isAnsweringAllowed=false;
+
+        this.timerInterval=null;
+
+        this.timeLeft=15;
+
+        this.maxTime=15;
+
+        /* ================= MULTIPLAYER ================= */
+
+        this.peer=null;
+
+        this.roomCode="";
+
+        this.isHost=false;
+
+        this.guestConn=null;
+
+        this.hostConnections=new Map();
+
+        this.connectionRetryTimer=null;
+
+        this.connectionTimeout=null;
+
+        this.connectionAttempts=0;
+
+        this.hostReady=false;
+
+        this.myPlayerId=null;
+
+        this.hostPeerId=null;
+
+        this.avatars=[
+            "🦊","🐻","🐯","🐰",
+            "🤖","🐲","🦁","🐼"
         ];
+    }
 
-        class SoundEngine {
-            constructor() {
-                this.ctx = null;
-                this.muted = false;
-            }
 
-            init() {
-                if (!this.ctx) {
-                    const AudioContext = window.AudioContext || window.webkitAudioContext;
-                    if (AudioContext) {
-                        this.ctx = new AudioContext();
-                    }
+    /* =====================================================
+       INITIALIZE
+    ===================================================== */
+
+    init(){
+
+        this.checkUrlForRoomCode();
+
+        this.showHome();
+    }
+
+
+    /* =====================================================
+       URL ROOM
+    ===================================================== */
+
+    checkUrlForRoomCode(){
+
+        const params=
+            new URLSearchParams(window.location.search);
+
+        const room=params.get("room");
+
+        if(room && /^\d{4}$/.test(room)){
+
+            setTimeout(()=>{
+
+                this.open4PSetup();
+
+                const input=
+                    document.getElementById("joinCodeInput");
+
+                if(input){
+
+                    input.value=room;
+
+                    this.showToast(
+                        `방 코드 [${room}]가 자동 입력되었습니다.`,
+                        "📱"
+                    );
                 }
-                if (this.ctx && this.ctx.state === 'suspended') {
-                    this.ctx.resume();
-                }
-            }
 
-            playClick() {
-                if (this.muted) return;
-                this.init();
-                if (!this.ctx) return;
-
-                const osc = this.ctx.createOscillator();
-                const gain = this.ctx.createGain();
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(600, this.ctx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(300, this.ctx.currentTime + 0.05);
-                gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
-                gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.05);
-
-                osc.connect(gain);
-                gain.connect(this.ctx.destination);
-                osc.start();
-                osc.stop(this.ctx.currentTime + 0.05);
-            }
-
-            playCorrect() {
-                if (this.muted) return;
-                this.init();
-                if (!this.ctx) return;
-
-                const now = this.ctx.currentTime;
-                const osc = this.ctx.createOscillator();
-                const gain = this.ctx.createGain();
-                osc.type = 'triangle';
-                
-                osc.frequency.setValueAtTime(523.25, now); // C5
-                osc.frequency.setValueAtTime(659.25, now + 0.1); // E5
-                osc.frequency.setValueAtTime(783.99, now + 0.2); // G5
-                osc.frequency.setValueAtTime(1046.50, now + 0.3); // C6
-
-                gain.gain.setValueAtTime(0.25, now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
-
-                osc.connect(gain);
-                gain.connect(this.ctx.destination);
-                osc.start();
-                osc.stop(now + 0.5);
-            }
-
-            playWrong() {
-                if (this.muted) return;
-                this.init();
-                if (!this.ctx) return;
-
-                const now = this.ctx.currentTime;
-                const osc = this.ctx.createOscillator();
-                const gain = this.ctx.createGain();
-                osc.type = 'sawtooth';
-
-                osc.frequency.setValueAtTime(220, now);
-                osc.frequency.setValueAtTime(160, now + 0.15);
-
-                gain.gain.setValueAtTime(0.3, now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
-
-                osc.connect(gain);
-                gain.connect(this.ctx.destination);
-                osc.start();
-                osc.stop(now + 0.4);
-            }
-
-            playAttack() {
-                if (this.muted) return;
-                this.init();
-                if (!this.ctx) return;
-
-                const now = this.ctx.currentTime;
-                const osc = this.ctx.createOscillator();
-                const gain = this.ctx.createGain();
-                osc.type = 'square';
-
-                osc.frequency.setValueAtTime(800, now);
-                osc.frequency.exponentialRampToValueAtTime(100, now + 0.2);
-
-                gain.gain.setValueAtTime(0.3, now);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
-
-                osc.connect(gain);
-                gain.connect(this.ctx.destination);
-                osc.start();
-                osc.stop(now + 0.25);
-            }
-
-            playWin() {
-                if (this.muted) return;
-                this.init();
-                if (!this.ctx) return;
-
-                const notes = [523.25, 659.25, 783.99, 1046.50, 880, 1046.50];
-                const times = [0, 0.12, 0.24, 0.36, 0.5, 0.65];
-
-                notes.forEach((note, i) => {
-                    const osc = this.ctx.createOscillator();
-                    const gain = this.ctx.createGain();
-                    const now = this.ctx.currentTime + times[i];
-
-                    osc.type = 'triangle';
-                    osc.frequency.setValueAtTime(note, now);
-
-                    gain.gain.setValueAtTime(0.3, now);
-                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
-
-                    osc.connect(gain);
-                    gain.connect(this.ctx.destination);
-                    osc.start(now);
-                    osc.stop(now + 0.3);
-                });
-            }
+            },500);
         }
+    }
 
-        class EffectsEngine {
-            constructor() {
-                this.bgCanvas = document.getElementById('bgCanvas');
-                this.bgCtx = this.bgCanvas ? this.bgCanvas.getContext('2d') : null;
-                this.confettiCanvas = document.getElementById('confettiCanvas');
-                this.confettiCtx = this.confettiCanvas ? this.confettiCanvas.getContext('2d') : null;
-                
-                this.particles = [];
-                this.confetti = [];
-                this.animFrame = null;
 
-                this.initResize();
+    /* =====================================================
+       UI
+    ===================================================== */
+
+    hideAllScreens(){
+
+        [
+            "startScreen",
+            "roomSetupScreen",
+            "lobbyScreen",
+            "battleScreen",
+            "resultScreen"
+        ].forEach(id=>{
+
+            const el=document.getElementById(id);
+
+            if(el){
+                el.classList.add("hidden");
             }
 
-            initResize() {
-                const resize = () => {
-                    if (this.bgCanvas) {
-                        this.bgCanvas.width = window.innerWidth;
-                        this.bgCanvas.height = window.innerHeight;
-                    }
-                    if (this.confettiCanvas) {
-                        this.confettiCanvas.width = window.innerWidth;
-                        this.confettiCanvas.height = window.innerHeight;
-                    }
-                };
-                window.addEventListener('resize', resize);
-                resize();
-                this.createBgParticles();
-                this.loop();
-            }
+        });
 
-            createBgParticles() {
-                this.particles = [];
-                const count = Math.min(40, Math.floor(window.innerWidth / 20));
-                for (let i = 0; i < count; i++) {
-                    this.particles.push({
-                        x: Math.random() * window.innerWidth,
-                        y: Math.random() * window.innerHeight,
-                        r: Math.random() * 2 + 1,
-                        vx: (Math.random() - 0.5) * 0.5,
-                        vy: (Math.random() - 0.5) * 0.5,
-                        alpha: Math.random() * 0.5 + 0.2
-                    });
-                }
-            }
+        const battle=
+            document.getElementById("battleScreen");
 
-            loop() {
-                if (this.bgCtx && this.bgCanvas) {
-                    this.bgCtx.clearRect(0, 0, this.bgCanvas.width, this.bgCanvas.height);
-                    this.bgCtx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-                    this.particles.forEach(p => {
-                        p.x += p.vx;
-                        p.y += p.vy;
-                        if (p.x < 0) p.x = this.bgCanvas.width;
-                        if (p.x > this.bgCanvas.width) p.x = 0;
-                        if (p.y < 0) p.y = this.bgCanvas.height;
-                        if (p.y > this.bgCanvas.height) p.y = 0;
+        battle.classList.remove("flex");
+    }
 
-                        this.bgCtx.globalAlpha = p.alpha;
-                        this.bgCtx.beginPath();
-                        this.bgCtx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-                        this.bgCtx.fill();
-                    });
-                }
 
-                if (this.confettiCtx && this.confetti.length > 0) {
-                    this.confettiCtx.clearRect(0, 0, this.confettiCanvas.width, this.confettiCanvas.height);
-                    for (let i = this.confetti.length - 1; i >= 0; i--) {
-                        const c = this.confetti[i];
-                        c.x += c.vx;
-                        c.y += c.vy;
-                        c.vy += 0.1; // gravity
-                        c.rotation += c.vRot;
-                        c.life -= 0.01;
+    showHome(){
 
-                        if (c.life <= 0) {
-                            this.confetti.splice(i, 1);
-                            continue;
-                        }
+        this.clearTimer();
 
-                        this.confettiCtx.save();
-                        this.confettiCtx.translate(c.x, c.y);
-                        this.confettiCtx.rotate(c.rotation);
-                        this.confettiCtx.fillStyle = c.color;
-                        this.confettiCtx.globalAlpha = Math.max(0, c.life);
-                        this.confettiCtx.fillRect(-c.size / 2, -c.size / 2, c.size, c.size);
-                        this.confettiCtx.restore();
-                    }
-                }
+        this.disconnectNetwork();
 
-                this.animFrame = requestAnimationFrame(() => this.loop());
-            }
+        this.hideAllScreens();
 
-            startConfetti() {
-                const colors = ['#fde047', '#60a5fa', '#f472b6', '#34d399', '#a78bfa'];
-                this.confetti = [];
-                for (let i = 0; i < 120; i++) {
-                    this.confetti.push({
-                        x: window.innerWidth / 2,
-                        y: window.innerHeight / 2 - 100,
-                        size: Math.random() * 8 + 6,
-                        color: colors[Math.floor(Math.random() * colors.length)],
-                        vx: (Math.random() - 0.5) * 16,
-                        vy: (Math.random() - 0.7) * 18,
-                        rotation: Math.random() * Math.PI * 2,
-                        vRot: (Math.random() - 0.5) * 0.2,
-                        life: 1.0
-                    });
-                }
-            }
+        document
+            .getElementById("startScreen")
+            .classList.remove("hidden");
+    }
 
-            triggerAttackVisual(targetElementId, damageText) {
-                const el = document.getElementById(targetElementId);
-                if (!el) return;
-                el.classList.remove('animate-shake', 'animate-damage');
-                void el.offsetWidth; // Force Reflow
-                el.classList.add('animate-shake', 'animate-damage');
 
-                // Floating Damage text overlay
-                const rect = el.getBoundingClientRect();
-                const pop = document.createElement('div');
-                pop.className = 'fixed font-jua text-2xl sm:text-3xl font-extrabold text-red-400 z-50 pointer-events-none drop-shadow-lg';
-                pop.innerText = damageText;
-                pop.style.left = `${rect.left + rect.width / 2 - 20}px`;
-                pop.style.top = `${rect.top}px`;
-                pop.style.transition = 'all 0.8s ease-out';
-                document.body.appendChild(pop);
+    open4PSetup(){
 
-                requestAnimationFrame(() => {
-                    pop.style.top = `${rect.top - 40}px`;
-                    pop.style.opacity = '0';
-                });
+        this.clearTimer();
 
-                setTimeout(() => {
-                    if (pop.parentNode) pop.parentNode.removeChild(pop);
-                }, 800);
-            }
+        this.hideAllScreens();
+
+        document
+            .getElementById("roomSetupScreen")
+            .classList.remove("hidden");
+    }
+
+
+    showToast(message,icon="ℹ️"){
+
+        const toast=
+            document.getElementById("toast");
+
+        document
+            .getElementById("toastMessage")
+            .innerText=message;
+
+        document
+            .getElementById("toastIcon")
+            .innerText=icon;
+
+        toast.classList.remove(
+            "opacity-0",
+            "pointer-events-none"
+        );
+
+        toast.classList.add("opacity-100");
+
+        clearTimeout(this.toastTimer);
+
+        this.toastTimer=setTimeout(()=>{
+
+            toast.classList.remove("opacity-100");
+
+            toast.classList.add(
+                "opacity-0",
+                "pointer-events-none"
+            );
+
+        },3500);
+    }
+
+
+    toggleSound(){
+
+        this.sound.muted=!this.sound.muted;
+
+        document
+            .getElementById("soundIcon")
+            .innerText=
+            this.sound.muted ? "🔇" : "🔊";
+
+        if(!this.sound.muted){
+            this.sound.playClick();
         }
+    }
 
-        class GameController {
-            constructor() {
-                this.sound = new SoundEngine();
-                this.fx = new EffectsEngine();
 
-                this.mode = '1p'; // '1p', '2p', '4p_host', '4p_guest'
-                this.players = [];
-                this.currentRound = 0;
-                this.totalRounds = 10;
-                this.currentQuestion = null;
-                this.shuffledQuestions = [];
-                this.timerInterval = null;
-                this.heartbeatInterval = null;
-                this.timeLeft = 15;
-                this.maxTime = 15;
-                this.activePlayerIdx = 0; // Turn index for local modes
-                this.isAnsweringAllowed = false;
+    /* =====================================================
+       ROOM CODE
+    ===================================================== */
 
-                // PeerJS / Multiplayer properties
-                this.peer = null;
-                this.roomCode = '';
-                this.hostConnList = []; // Host's guest connections
-                this.guestConn = null;  // Guest's connection to host
-                this.isHost = false;
-                this.submittedAnswers = {}; // Track answers for online mode
+    generateRoomCode(){
 
-                this.avatars = ['🦊', '🐻', '🐯', '🐰', '🤖', '🐲', '🦁', '🐼'];
-            }
+        return Math.floor(
+            1000+Math.random()*9000
+        ).toString();
+    }
 
-            init() {
-                this.checkUrlForRoomCode();
-                this.showHome();
-            }
 
-            checkUrlForRoomCode() {
-                const urlParams = new URLSearchParams(window.location.search);
-                const roomParam = urlParams.get('room');
-                if (roomParam && roomParam.length === 4) {
-                    setTimeout(() => {
-                        this.open4PSetup();
-                        const joinCodeInput = document.getElementById('joinCodeInput');
-                        if (joinCodeInput) {
-                            joinCodeInput.value = roomParam;
-                            this.showToast(`방 코드 [${roomParam}]이 자동 입력되었습니다.`, '📱');
-                        }
-                    }, 400);
-                }
-            }
+    /* =====================================================
+       PEER CONFIG
+    ===================================================== */
 
-            toggleSound() {
-                this.sound.muted = !this.sound.muted;
-                const icon = document.getElementById('soundIcon');
-                const btn = document.getElementById('soundToggleBtn');
-                if (this.sound.muted) {
-                    icon.innerText = '🔇';
-                    btn.classList.add('opacity-60');
-                } else {
-                    icon.innerText = '🔊';
-                    btn.classList.remove('opacity-60');
-                    this.sound.playClick();
-                }
-            }
+    getPeerConfig(){
 
-            showToast(message, icon = 'ℹ️') {
-                const toast = document.getElementById('toast');
-                document.getElementById('toastMessage').innerText = message;
-                document.getElementById('toastIcon').innerText = icon;
-                toast.classList.remove('opacity-0', 'pointer-events-none');
-                toast.classList.add('opacity-100');
-                setTimeout(() => {
-                    toast.classList.remove('opacity-100');
-                    toast.classList.add('opacity-0', 'pointer-events-none');
-                }, 2800);
-            }
+        return {
 
-            hideAllScreens() {
-                document.getElementById('startScreen').classList.add('hidden');
-                document.getElementById('roomSetupScreen').classList.add('hidden');
-                document.getElementById('lobbyScreen').classList.add('hidden');
-                document.getElementById('battleScreen').classList.add('hidden');
-                document.getElementById('resultScreen').classList.add('hidden');
-                document.getElementById('battleScreen').classList.remove('flex');
-            }
+            debug:2,
 
-            showHome() {
-                this.sound.playClick();
-                this.clearIntervals();
-                this.hideAllScreens();
-                document.getElementById('startScreen').classList.remove('hidden');
-                if (this.peer) {
-                    this.peer.destroy();
-                    this.peer = null;
-                }
-            }
+            secure:true,
 
-            clearIntervals() {
-                if (this.timerInterval) {
-                    clearInterval(this.timerInterval);
-                    this.timerInterval = null;
-                }
-                if (this.heartbeatInterval) {
-                    clearInterval(this.heartbeatInterval);
-                    this.heartbeatInterval = null;
-                }
-            }
+            config:{
 
-            open4PSetup() {
-                this.sound.playClick();
-                this.hideAllScreens();
-                document.getElementById('roomSetupScreen').classList.remove('hidden');
-            }
+                iceServers:[
 
-            generateRoomCode() {
-                return Math.floor(1000 + Math.random() * 9000).toString();
-            }
+                    {
+                        urls:"stun:stun.l.google.com:19302"
+                    },
 
-            create4PRoom() {
-                this.sound.playClick();
-                const nameInput = document.getElementById('hostNameInput').value.trim() || '방장';
-                this.roomCode = this.generateRoomCode();
-                this.isHost = true;
-                this.mode = '4p_host';
+                    {
+                        urls:"stun:stun1.l.google.com:19302"
+                    },
 
-                this.players = [
-                    { id: 'host', name: nameInput, avatar: '👑', hp: 100, maxHp: 100, isHost: true }
-                ];
+                    {
+                        urls:"stun:stun2.l.google.com:19302"
+                    },
 
-                const peerId = 'spelling-master-' + this.roomCode;
-                this.showToast('Wi-Fi 대결 서버 생성 중...', '⏳');
-
-                // STUN configuration for Wi-Fi and WebRTC NAT traversal
-                const peerConfig = {
-                    config: {
-                        iceServers: [
-                            { urls: 'stun:stun.l.google.com:19302' },
-                            { urls: 'stun:stun1.l.google.com:19302' },
-                            { urls: 'stun:stun2.l.google.com:19302' },
-                            { urls: 'stun:stun3.l.google.com:19302' }
-                        ]
+                    {
+                        urls:"stun:stun3.l.google.com:19302"
                     }
-                };
 
-                try {
-                    if (this.peer) this.peer.destroy();
-                    this.peer = new Peer(peerId, peerConfig);
-                    
-                    this.peer.on('open', (id) => {
-                        this.openLobbyScreen();
-                        this.updateLobbyUI();
-                        this.startHeartbeat();
-                    });
-
-                    this.peer.on('connection', (conn) => {
-                        if (this.players.length >= 4) {
-                            conn.send({ type: 'REJECT', reason: '방이 가득 찼습니다.' });
-                            setTimeout(() => conn.close(), 500);
-                            return;
-                        }
-
-                        this.hostConnList.push(conn);
-
-                        conn.on('data', (data) => {
-                            if (data.type === 'PING') return; // Heartbeat packet
-                            this.handleHostReceivedData(conn, data);
-                        });
-
-                        conn.on('close', () => {
-                            this.players = this.players.filter(p => p.connId !== conn.peer);
-                            this.hostConnList = this.hostConnList.filter(c => c.peer !== conn.peer);
-                            this.broadcastGameState('LOBBY_UPDATE', { players: this.players });
-                            this.updateLobbyUI();
-                        });
-                    });
-
-                    this.peer.on('error', (err) => {
-                        console.error('PeerJS Error:', err);
-                        if (err.type === 'unavailable-id') {
-                            this.showToast('방 코드가 중복되었습니다. 다시 생성합니다.', '🔄');
-                            setTimeout(() => this.create4PRoom(), 500);
-                        } else {
-                            this.showToast('네트워크 오류: ' + (err.type || '연결 실패'), '❌');
-                        }
-                    });
-                } catch (e) {
-                    this.showToast('네트워크 오류가 발생했습니다.', '❌');
-                }
+                ]
             }
+        };
+    }
 
-            join4PRoom() {
-                this.sound.playClick();
-                const nameInput = document.getElementById('joinNameInput').value.trim() || '참가자';
-                const codeInput = document.getElementById('joinCodeInput').value.trim();
 
-                if (!codeInput || codeInput.length !== 4) {
-                    this.showToast('올바른 4자리 방 코드를 입력하세요.', '⚠️');
+    /* =====================================================
+       CREATE ROOM
+    ===================================================== */
+
+    create4PRoom(){
+
+        this.sound.playClick();
+
+        const name=
+            document
+                .getElementById("hostNameInput")
+                .value
+                .trim()
+                .slice(0,6)
+            || "방장";
+
+        this.disconnectNetwork();
+
+        this.roomCode=this.generateRoomCode();
+
+        this.hostPeerId=
+            "spelling-master-"+this.roomCode;
+
+        this.isHost=true;
+
+        this.mode="4p_host";
+
+        this.myPlayerId="host";
+
+        this.players=[{
+
+            id:"host",
+
+            name:name,
+
+            avatar:"👑",
+
+            hp:100,
+
+            maxHp:100,
+
+            isHost:true
+
+        }];
+
+        this.hostConnections=new Map();
+
+        this.hostReady=false;
+
+        this.showToast(
+            "방을 만드는 중입니다...",
+            "⏳"
+        );
+
+        const btn=
+            document.getElementById("createRoomBtn");
+
+        btn.disabled=true;
+
+        btn.innerText="⏳ 방 생성 중...";
+
+
+        try{
+
+            this.peer=
+                new Peer(
+                    this.hostPeerId,
+                    this.getPeerConfig()
+                );
+
+
+            /* ================= PEER OPEN ================= */
+
+            this.peer.on("open",(id)=>{
+
+                console.log(
+                    "[HOST] Peer open:",
+                    id
+                );
+
+                this.hostReady=true;
+
+                btn.disabled=false;
+
+                btn.innerText="✨ 방 만들기";
+
+                this.openLobbyScreen();
+
+                this.updateLobbyUI();
+
+                this.showToast(
+                    "방이 만들어졌습니다! 친구를 초대하세요.",
+                    "✅"
+                );
+
+            });
+
+
+            /* ================= CONNECTION ================= */
+
+            this.peer.on("connection",(conn)=>{
+
+                console.log(
+                    "[HOST] 새로운 연결:",
+                    conn.peer
+                );
+
+                this.setupHostConnection(conn);
+
+            });
+
+
+            /* ================= ERROR ================= */
+
+            this.peer.on("error",(err)=>{
+
+                console.error(
+                    "[HOST] Peer error:",
+                    err
+                );
+
+                if(
+                    err.type==="unavailable-id"
+                ){
+
+                    this.showToast(
+                        "방 코드가 이미 사용 중입니다. 새 방을 만듭니다.",
+                        "⚠️"
+                    );
+
+                    setTimeout(()=>{
+                        this.create4PRoom();
+                    },1000);
+
                     return;
                 }
 
-                this.roomCode = codeInput;
-                this.isHost = false;
-                this.mode = '4p_guest';
-                const targetPeerId = 'spelling-master-' + this.roomCode;
+                this.showToast(
+                    "방 연결 오류: "+
+                    (err.type||err.message||"알 수 없는 오류"),
+                    "❌"
+                );
 
-                this.showToast('Wi-Fi 대결 방에 연결 중...', '⏳');
+            });
 
-                const peerConfig = {
-                    config: {
-                        iceServers: [
-                            { urls: 'stun:stun.l.google.com:19302' },
-                            { urls: 'stun:stun1.l.google.com:19302' },
-                            { urls: 'stun:stun2.l.google.com:19302' },
-                            { urls: 'stun:stun3.l.google.com:19302' }
-                        ]
+
+            this.peer.on("disconnected",()=>{
+
+                console.warn(
+                    "[HOST] Peer 서버 연결 끊김"
+                );
+
+                if(
+                    this.peer &&
+                    !this.peer.destroyed
+                ){
+
+                    try{
+                        this.peer.reconnect();
+                    }catch(e){
+                        console.error(e);
                     }
+                }
+
+            });
+
+
+            this.peer.on("close",()=>{
+
+                console.log("[HOST] Peer closed");
+
+            });
+
+        }catch(error){
+
+            console.error(error);
+
+            btn.disabled=false;
+
+            btn.innerText="✨ 방 만들기";
+
+            this.showToast(
+                "방 생성 중 오류가 발생했습니다.",
+                "❌"
+            );
+        }
+    }
+
+
+    /* =====================================================
+       HOST CONNECTION
+    ===================================================== */
+
+    setupHostConnection(conn){
+
+        if(!conn){
+            return;
+        }
+
+
+        /* 이미 연결된 참가자인 경우 */
+
+        if(this.hostConnections.has(conn.peer)){
+
+            try{
+                conn.close();
+            }catch(e){}
+
+            return;
+        }
+
+
+        /* 방이 가득 찬 경우 */
+
+        const guestCount=
+            this.players.filter(
+                p=>!p.isHost
+            ).length;
+
+        if(guestCount>=3){
+
+            try{
+
+                conn.on("open",()=>{
+
+                    conn.send({
+
+                        type:"REJECT",
+
+                        reason:"방이 가득 찼습니다. 최대 4명까지 참가할 수 있습니다."
+
+                    });
+
+                    setTimeout(
+                        ()=>conn.close(),
+                        500
+                    );
+
+                });
+
+            }catch(e){}
+
+            return;
+        }
+
+
+        this.hostConnections.set(
+            conn.peer,
+            conn
+        );
+
+
+        let registered=false;
+
+
+        conn.on("open",()=>{
+
+            console.log(
+                "[HOST] 참가자 연결 OPEN:",
+                conn.peer
+            );
+
+            try{
+
+                conn.send({
+
+                    type:"HOST_READY",
+
+                    roomCode:this.roomCode,
+
+                    players:this.players
+
+                });
+
+            }catch(e){
+                console.error(e);
+            }
+
+        });
+
+
+        conn.on("data",(data)=>{
+
+            console.log(
+                "[HOST] received:",
+                data
+            );
+
+            if(!data){
+                return;
+            }
+
+            if(data.type==="PING"){
+
+                try{
+                    conn.send({
+                        type:"PONG"
+                    });
+                }catch(e){}
+
+                return;
+            }
+
+
+            if(data.type==="JOIN_REQ"){
+
+                if(registered){
+                    return;
+                }
+
+                const currentGuests=
+                    this.players.filter(
+                        p=>!p.isHost
+                    ).length;
+
+                if(currentGuests>=3){
+
+                    conn.send({
+
+                        type:"REJECT",
+
+                        reason:
+                        "방이 가득 찼습니다."
+
+                    });
+
+                    return;
+                }
+
+
+                const playerId=
+                    "player_"+
+
+                    Math.random()
+                        .toString(36)
+                        .substring(2,9);
+
+
+                const player={
+
+                    id:playerId,
+
+                    connId:conn.peer,
+
+                    name:
+                        String(data.name||"참가자")
+                        .substring(0,6),
+
+                    avatar:
+                        data.avatar||
+                        this.randomAvatar(),
+
+                    hp:100,
+
+                    maxHp:100,
+
+                    isHost:false
+
                 };
 
-                try {
-                    if (this.peer) this.peer.destroy();
-                    this.peer = new Peer(peerConfig);
 
-                    let connTimeout = setTimeout(() => {
-                        if (!this.guestConn || !this.guestConn.open) {
-                            this.showToast('방을 찾을 수 없거나 와이파이 연결 시간이 초과되었습니다.', '❌');
-                        }
-                    }, 8000);
+                registered=true;
 
-                    this.peer.on('open', () => {
-                        this.guestConn = this.peer.connect(targetPeerId, { reliable: true });
+                this.players.push(player);
 
-                        this.guestConn.on('open', () => {
-                            clearTimeout(connTimeout);
-                            this.startHeartbeat();
-                            const myAvatar = this.avatars[Math.floor(Math.random() * this.avatars.length)];
-                            this.guestConn.send({
-                                type: 'JOIN_REQ',
-                                name: nameInput,
-                                avatar: myAvatar
-                            });
-                        });
 
-                        this.guestConn.on('data', (data) => {
-                            if (data.type === 'PING') return; // Heartbeat packet
-                            this.handleGuestReceivedData(data);
-                        });
+                console.log(
+                    "[HOST] 참가자 등록:",
+                    player
+                );
 
-                        this.guestConn.on('close', () => {
-                            this.showToast('방과의 와이파이 연결이 끊어졌습니다.', '⚠️');
-                            this.showHome();
-                        });
 
-                        this.guestConn.on('error', (err) => {
-                            clearTimeout(connTimeout);
-                            this.showToast('연결 오류가 발생했습니다: ' + err, '❌');
-                        });
-                    });
+                conn.send({
 
-                    this.peer.on('error', (err) => {
-                        clearTimeout(connTimeout);
-                        if (err.type === 'peer-unavailable') {
-                            this.showToast('해당 방 코드의 방이 존재하지 않습니다. 코드를 확인해 주세요.', '❌');
-                        } else {
-                            this.showToast('Wi-Fi 연결 오류: ' + (err.type || '접속 불가'), '❌');
-                        }
-                    });
-                } catch (e) {
-                    this.showToast('연결 도중 오류가 발생했습니다.', '❌');
-                }
-            }
+                    type:"JOIN_ACCEPT",
 
-            startHeartbeat() {
-                if (this.heartbeatInterval) clearInterval(this.heartbeatInterval);
-                this.heartbeatInterval = setInterval(() => {
-                    if (this.isHost && this.hostConnList) {
-                        this.hostConnList.forEach(c => {
-                            if (c && c.open) c.send({ type: 'PING' });
-                        });
-                    } else if (this.guestConn && this.guestConn.open) {
-                        this.guestConn.send({ type: 'PING' });
+                    playerId:playerId,
+
+                    players:this.players
+
+                });
+
+
+                this.broadcastGameState(
+                    "LOBBY_UPDATE",
+                    {
+                        players:this.players
                     }
-                }, 3000);
+                );
+
+
+                this.updateLobbyUI();
+
+                return;
             }
 
-            handleHostReceivedData(conn, data) {
-                if (data.type === 'JOIN_REQ') {
-                    const newPlayer = {
-                        id: 'player_' + Math.random().toString(36).substr(2, 5),
-                        connId: conn.peer,
-                        name: data.name,
-                        avatar: data.avatar || '🦊',
-                        hp: 100,
-                        maxHp: 100,
-                        isHost: false
-                    };
-                    this.players.push(newPlayer);
-                    this.broadcastGameState('LOBBY_UPDATE', { players: this.players });
-                    this.updateLobbyUI();
-                } else if (data.type === 'SUBMIT_ANSWER') {
-                    this.submittedAnswers[data.playerId] = data.optionIndex;
-                    this.checkAllAnswersSubmitted();
+
+            if(data.type==="SUBMIT_ANSWER"){
+
+                if(!registered){
+                    return;
                 }
+
+                this.submittedAnswers[
+                    data.playerId
+                ]=data.optionIndex;
+
+                this.checkAllAnswersSubmitted();
+
+                return;
             }
 
-            handleGuestReceivedData(data) {
-                if (data.type === 'REJECT') {
-                    this.showToast(data.reason, '❌');
+        });
+
+
+        conn.on("close",()=>{
+
+            console.log(
+                "[HOST] 참가자 연결 종료:",
+                conn.peer
+            );
+
+            this.hostConnections.delete(
+                conn.peer
+            );
+
+            const before=
+                this.players.length;
+
+            this.players=
+                this.players.filter(
+                    p=>p.connId!==conn.peer
+                );
+
+            if(
+                this.players.length!==before
+            ){
+
+                this.broadcastGameState(
+                    "LOBBY_UPDATE",
+                    {
+                        players:this.players
+                    }
+                );
+
+                this.updateLobbyUI();
+            }
+
+        });
+
+
+        conn.on("error",(error)=>{
+
+            console.error(
+                "[HOST] Connection error:",
+                error
+            );
+
+        });
+
+    }
+
+
+    /* =====================================================
+       JOIN ROOM
+    ===================================================== */
+
+    join4PRoom(){
+
+        this.sound.playClick();
+
+        const name=
+            document
+                .getElementById("joinNameInput")
+                .value
+                .trim()
+                .slice(0,6)
+            ||"참가자";
+
+        const code=
+            document
+                .getElementById("joinCodeInput")
+                .value
+                .trim();
+
+
+        if(!/^\d{4}$/.test(code)){
+
+            this.showToast(
+                "4자리 방 코드를 정확하게 입력하세요.",
+                "⚠️"
+            );
+
+            return;
+        }
+
+
+        this.disconnectNetwork();
+
+        this.roomCode=code;
+
+        this.hostPeerId=
+            "spelling-master-"+code;
+
+        this.isHost=false;
+
+        this.mode="4p_guest";
+
+        this.connectionAttempts=0;
+
+        this.myPlayerId=null;
+
+
+        const btn=
+            document.getElementById("joinRoomBtn");
+
+        btn.disabled=true;
+
+        btn.innerText="⏳ 방에 연결 중...";
+
+
+        this.showToast(
+            "방장에게 연결하는 중입니다...",
+            "🔄"
+        );
+
+
+        /* 참가자는 자신의 Peer ID를 랜덤으로 생성 */
+
+        try{
+
+            this.peer=
+                new Peer(
+                    this.getPeerConfig()
+                );
+
+
+            /* ================= OPEN ================= */
+
+            this.peer.on("open",(id)=>{
+
+                console.log(
+                    "[GUEST] Peer open:",
+                    id
+                );
+
+                this.connectionAttempts=0;
+
+                this.connectToHost(name);
+
+            });
+
+
+            /* ================= ERROR ================= */
+
+            this.peer.on("error",(err)=>{
+
+                console.error(
+                    "[GUEST] Peer error:",
+                    err
+                );
+
+                if(
+                    err.type==="peer-unavailable"
+                ){
+
+                    this.retryHostConnection(name);
+
+                    return;
+                }
+
+
+                if(
+                    err.type==="network"
+                    ||
+                    err.type==="server-error"
+                    ||
+                    err.type==="socket-error"
+                ){
+
+                    this.retryHostConnection(name);
+
+                    return;
+                }
+
+
+                btn.disabled=false;
+
+                btn.innerText="🚀 참가하기";
+
+                this.showToast(
+                    "연결 오류: "+
+                    (err.type||err.message||"알 수 없는 오류"),
+                    "❌"
+                );
+
+            });
+
+
+            this.peer.on("disconnected",()=>{
+
+                console.warn(
+                    "[GUEST] Peer 서버 disconnected"
+                );
+
+                if(
+                    this.peer &&
+                    !this.peer.destroyed
+                ){
+
+                    try{
+                        this.peer.reconnect();
+                    }catch(e){
+                        console.error(e);
+                    }
+                }
+
+            });
+
+        }catch(error){
+
+            console.error(error);
+
+            btn.disabled=false;
+
+            btn.innerText="🚀 참가하기";
+
+            this.showToast(
+                "참가 연결을 시작할 수 없습니다.",
+                "❌"
+            );
+        }
+    }
+
+
+    /* =====================================================
+       CONNECT TO HOST
+    ===================================================== */
+
+    connectToHost(name){
+
+        if(
+            !this.peer ||
+            this.peer.destroyed
+        ){
+            return;
+        }
+
+
+        if(
+            this.guestConn &&
+            this.guestConn.open
+        ){
+            return;
+        }
+
+
+        console.log(
+            "[GUEST] host connect:",
+            this.hostPeerId
+        );
+
+
+        const conn=
+            this.peer.connect(
+                this.hostPeerId,
+                {
+                    reliable:true,
+
+                    serialization:"json"
+                }
+            );
+
+
+        this.guestConn=conn;
+
+
+        let opened=false;
+
+
+        conn.on("open",()=>{
+
+            opened=true;
+
+            console.log(
+                "[GUEST] HOST CONNECTION OPEN"
+            );
+
+
+            clearTimeout(
+                this.connectionTimeout
+            );
+
+
+            const avatar=
+                this.randomAvatar();
+
+
+            conn.send({
+
+                type:"JOIN_REQ",
+
+                name:name,
+
+                avatar:avatar
+
+            });
+
+
+            this.showToast(
+                "방장과 연결되었습니다!",
+                "✅"
+            );
+
+        });
+
+
+        conn.on("data",(data)=>{
+
+            console.log(
+                "[GUEST] received:",
+                data
+            );
+
+            this.handleGuestData(data);
+
+        });
+
+
+        conn.on("close",()=>{
+
+            console.warn(
+                "[GUEST] host connection closed"
+            );
+
+            if(
+                this.mode==="4p_guest"
+            ){
+
+                this.showToast(
+                    "방장과의 연결이 끊어졌습니다.",
+                    "⚠️"
+                );
+
+                setTimeout(()=>{
                     this.showHome();
-                } else if (data.type === 'LOBBY_UPDATE') {
-                    this.players = data.players;
-                    this.openLobbyScreen();
-                    this.updateLobbyUI();
-                } else if (data.type === 'START_GAME') {
-                    this.players = data.players;
-                    this.shuffledQuestions = data.questions;
-                    this.currentRound = 0;
-                    this.startBattleScreen();
-                    this.setupRound(data.questionIndex);
-                } else if (data.type === 'ROUND_RESULT') {
-                    this.players = data.players;
-                    this.renderPlayersGrid();
-                    this.showRoundExplanation(data.correct, data.selectedOption, data.explanation, data.tip);
-                } else if (data.type === 'NEXT_ROUND') {
-                    document.getElementById('explanationBox').classList.add('hidden');
-                    document.getElementById('waitingOthersOverlay').classList.add('hidden');
-                    this.setupRound(data.questionIndex);
-                } else if (data.type === 'GAME_OVER') {
-                    this.players = data.players;
-                    this.showGameOverScreen();
+                },1500);
+            }
+
+        });
+
+
+        conn.on("error",(error)=>{
+
+            console.error(
+                "[GUEST] connection error:",
+                error
+            );
+
+            if(!opened){
+
+                this.retryHostConnection(name);
+
+            }
+
+        });
+
+
+        /* 기존 8초보다 충분히 긴 20초 */
+
+        this.connectionTimeout=
+            setTimeout(()=>{
+
+                if(
+                    !opened &&
+                    !conn.open
+                ){
+
+                    console.warn(
+                        "[GUEST] connection timeout"
+                    );
+
+                    try{
+                        conn.close();
+                    }catch(e){}
+
+                    this.retryHostConnection(name);
+
                 }
-            }
 
-            broadcastGameState(type, payload = {}) {
-                if (!this.isHost) return;
-                const msg = { type, ...payload };
-                this.hostConnList.forEach(conn => {
-                    if (conn && conn.open) conn.send(msg);
-                });
-            }
+            },20000);
 
-            openLobbyScreen() {
-                this.hideAllScreens();
-                document.getElementById('lobbyScreen').classList.remove('hidden');
+    }
 
-                // Render QR Code with direct room URL parameter
-                const qrContainer = document.getElementById('qrcode');
-                qrContainer.innerHTML = '';
-                const joinUrl = `${window.location.origin}${window.location.pathname}?room=${this.roomCode}`;
-                new QRCode(qrContainer, {
-                    text: joinUrl,
-                    width: 128,
-                    height: 128,
-                    colorDark: "#1e1b4b",
-                    colorLight: "#ffffff",
-                    correctLevel: QRCode.CorrectLevel.M
-                });
 
-                document.getElementById('lobbyCodeDisplay').innerText = this.roomCode;
-            }
+    /* =====================================================
+       RETRY
+    ===================================================== */
 
-            updateLobbyUI() {
-                document.getElementById('playerCountText').innerText = this.players.length;
+    retryHostConnection(name){
 
-                const listContainer = document.getElementById('playerLobbyList');
-                listContainer.innerHTML = '';
+        if(this.mode!=="4p_guest"){
+            return;
+        }
 
-                this.players.forEach((p, idx) => {
-                    const item = document.createElement('div');
-                    item.className = 'flex items-center justify-between bg-indigo-900/90 px-3.5 py-2 rounded-xl border border-indigo-700/60 shadow-sm';
-                    item.innerHTML = `
-                        <div class="flex items-center gap-2.5">
-                            <span class="text-xl">${p.avatar}</span>
-                            <span class="font-bold text-sm text-white">${p.name} ${p.isHost ? '👑' : ''}</span>
-                        </div>
-                        <span class="text-xs text-emerald-400 font-semibold bg-emerald-950/60 px-2 py-0.5 rounded-full">준비 완료</span>
-                    `;
-                    listContainer.appendChild(item);
-                });
 
-                const startBtn = document.getElementById('startGameHostBtn');
-                const waitingTxt = document.getElementById('waitingHostText');
-                const hostBadge = document.getElementById('lobbyHostBadge');
+        clearTimeout(
+            this.connectionRetryTimer
+        );
 
-                if (this.isHost) {
-                    startBtn.classList.remove('hidden');
-                    waitingTxt.classList.add('hidden');
-                    hostBadge.classList.remove('hidden');
-                } else {
-                    startBtn.classList.add('hidden');
-                    waitingTxt.classList.remove('hidden');
-                    hostBadge.classList.add('hidden');
+        this.connectionAttempts++;
+
+
+        if(this.connectionAttempts>6){
+
+            const btn=
+                document.getElementById(
+                    "joinRoomBtn"
+                );
+
+            btn.disabled=false;
+
+            btn.innerText="🚀 참가하기";
+
+
+            this.showToast(
+                "방을 찾지 못했습니다. 방 코드가 맞는지 확인하거나 방장이 방을 다시 만들어 주세요.",
+                "❌"
+            );
+
+            return;
+        }
+
+
+        const wait=
+            Math.min(
+                1500*this.connectionAttempts,
+                6000
+            );
+
+
+        this.showToast(
+            `방장에게 다시 연결합니다... (${this.connectionAttempts}/6)`,
+            "🔄"
+        );
+
+
+        this.connectionRetryTimer=
+            setTimeout(()=>{
+
+                if(
+                    this.peer &&
+                    !this.peer.destroyed
+                ){
+
+                    this.connectToHost(name);
+
                 }
-            }
 
-            leaveRoom() {
+            },wait);
+
+    }
+
+
+    /* =====================================================
+       GUEST DATA
+    ===================================================== */
+
+    handleGuestData(data){
+
+        if(!data){
+            return;
+        }
+
+
+        if(data.type==="HOST_READY"){
+
+            console.log(
+                "[GUEST] HOST_READY"
+            );
+
+            return;
+        }
+
+
+        if(data.type==="JOIN_ACCEPT"){
+
+            this.myPlayerId=
+                data.playerId;
+
+            this.players=
+                data.players||[];
+
+            const btn=
+                document.getElementById(
+                    "joinRoomBtn"
+                );
+
+            btn.disabled=false;
+
+            btn.innerText="🚀 참가하기";
+
+            this.openLobbyScreen();
+
+            this.updateLobbyUI();
+
+            return;
+        }
+
+
+        if(data.type==="REJECT"){
+
+            this.showToast(
+                data.reason||
+                "방 참가가 거부되었습니다.",
+                "❌"
+            );
+
+            setTimeout(()=>{
                 this.showHome();
+            },1200);
+
+            return;
+        }
+
+
+        if(data.type==="LOBBY_UPDATE"){
+
+            this.players=
+                data.players||[];
+
+            if(
+                document
+                    .getElementById("lobbyScreen")
+                    .classList
+                    .contains("hidden")
+            ){
+
+                this.openLobbyScreen();
+
             }
 
-            startMultiplayerGame() {
-                if (!this.isHost) return;
-                if (this.players.length < 1) {
-                    this.showToast('최소 1명 이상의 플레이어가 필요합니다.', '⚠️');
+            this.updateLobbyUI();
+
+            return;
+        }
+
+
+        if(data.type==="START_GAME"){
+
+            this.players=
+                data.players||[];
+
+            this.shuffledQuestions=
+                data.questions||[];
+
+            this.currentRound=0;
+
+            this.startBattleScreen();
+
+            this.setupRound(
+                data.questionIndex||0
+            );
+
+            return;
+        }
+
+
+        if(data.type==="ROUND_RESULT"){
+
+            this.players=
+                data.players||[];
+
+            this.renderPlayersGrid();
+
+            this.isAnsweringAllowed=false;
+
+            document
+                .getElementById(
+                    "waitingOthersOverlay"
+                )
+                .classList
+                .add("hidden");
+
+            this.showRoundExplanation(
+                data.correct,
+                data.selectedOption,
+                data.explanation,
+                data.tip
+            );
+
+            return;
+        }
+
+
+        if(data.type==="NEXT_ROUND"){
+
+            document
+                .getElementById(
+                    "explanationBox"
+                )
+                .classList
+                .add("hidden");
+
+            this.setupRound(
+                data.questionIndex
+            );
+
+            return;
+        }
+
+
+        if(data.type==="GAME_OVER"){
+
+            this.players=
+                data.players||[];
+
+            this.showGameOverScreen();
+
+            return;
+        }
+
+    }
+
+
+    /* =====================================================
+       BROADCAST
+    ===================================================== */
+
+    broadcastGameState(type,payload={}){
+
+        if(!this.isHost){
+            return;
+        }
+
+
+        const message={
+            type,
+            ...payload
+        };
+
+
+        this.hostConnections.forEach(
+            (conn,peerId)=>{
+
+                if(
+                    conn &&
+                    conn.open
+                ){
+
+                    try{
+                        conn.send(message);
+                    }catch(error){
+                        console.error(
+                            "broadcast error",
+                            error
+                        );
+                    }
+                }
+
+            }
+        );
+
+    }
+
+
+    /* =====================================================
+       LOBBY
+    ===================================================== */
+
+    openLobbyScreen(){
+
+        this.hideAllScreens();
+
+        document
+            .getElementById("lobbyScreen")
+            .classList
+            .remove("hidden");
+
+
+        this.createQRCode();
+
+        this.updateLobbyUI();
+
+    }
+
+
+    createQRCode(){
+
+        const container=
+            document.getElementById("qrcode");
+
+        container.innerHTML="";
+
+
+        /*
+         * 현재 GitHub Pages 주소 그대로 사용
+         * 예:
+         * https://아이디.github.io/저장소/?room=1234
+         */
+
+        const url=
+            window.location.origin+
+            window.location.pathname+
+            "?room="+
+            encodeURIComponent(this.roomCode);
+
+
+        new QRCode(container,{
+
+            text:url,
+
+            width:160,
+
+            height:160,
+
+            correctLevel:
+                QRCode.CorrectLevel.M
+
+        });
+
+
+        document
+            .getElementById(
+                "lobbyCodeDisplay"
+            )
+            .innerText=this.roomCode;
+
+    }
+
+
+    updateLobbyUI(){
+
+        const count=
+            document.getElementById(
+                "playerCountText"
+            );
+
+        count.innerText=
+            this.players.length;
+
+
+        const list=
+            document.getElementById(
+                "playerLobbyList"
+            );
+
+        list.innerHTML="";
+
+
+        this.players.forEach(player=>{
+
+            const item=
+                document.createElement("div");
+
+            item.className=
+                "flex items-center justify-between "+
+                "bg-indigo-900 rounded-xl p-3";
+
+
+            item.innerHTML=`
+
+                <div class="flex items-center gap-2">
+
+                    <span class="text-2xl">
+                        ${player.avatar}
+                    </span>
+
+                    <span class="font-bold">
+                        ${this.escapeHtml(player.name)}
+                    </span>
+
+                    ${
+                        player.isHost
+                        ? `<span class="text-yellow-300 text-xs">👑</span>`
+                        : ""
+                    }
+
+                </div>
+
+                <span class="text-xs text-emerald-300">
+                    연결됨
+                </span>
+
+            `;
+
+
+            list.appendChild(item);
+
+        });
+
+
+        const start=
+            document.getElementById(
+                "startGameHostBtn"
+            );
+
+        const waiting=
+            document.getElementById(
+                "waitingHostText"
+            );
+
+
+        if(this.isHost){
+
+            start.classList.remove("hidden");
+
+            waiting.classList.add("hidden");
+
+        }else{
+
+            start.classList.add("hidden");
+
+            waiting.classList.remove("hidden");
+
+        }
+
+    }
+
+
+    /* =====================================================
+       START MULTIPLAYER
+    ===================================================== */
+
+    startMultiplayerGame(){
+
+        if(!this.isHost){
+            return;
+        }
+
+
+        if(this.players.length<1){
+            return;
+        }
+
+
+        this.shuffledQuestions=
+            [...QUIZ_DATABASE]
+            .sort(
+                ()=>Math.random()-.5
+            );
+
+
+        this.currentRound=0;
+
+
+        this.broadcastGameState(
+            "START_GAME",
+            {
+
+                players:this.players,
+
+                questions:this.shuffledQuestions,
+
+                questionIndex:0
+
+            }
+        );
+
+
+        this.startBattleScreen();
+
+        this.setupRound(0);
+
+    }
+
+
+    /* =====================================================
+       START LOCAL GAME
+    ===================================================== */
+
+    startBattle(mode){
+
+        this.sound.playClick();
+
+        this.disconnectNetwork();
+
+        this.mode=mode;
+
+        this.currentRound=0;
+
+        this.shuffledQuestions=
+            [...QUIZ_DATABASE]
+            .sort(
+                ()=>Math.random()-.5
+            );
+
+
+        if(mode==="1p"){
+
+            this.players=[
+
+                {
+                    id:"p1",
+                    name:"나",
+                    avatar:"🤠",
+                    hp:100,
+                    maxHp:100
+                },
+
+                {
+                    id:"p2",
+                    name:"세종봇",
+                    avatar:"🤖",
+                    hp:100,
+                    maxHp:100,
+                    isAi:true
+                }
+
+            ];
+
+        }else{
+
+            this.players=[
+
+                {
+                    id:"p1",
+                    name:"1P",
+                    avatar:"🦊",
+                    hp:100,
+                    maxHp:100
+                },
+
+                {
+                    id:"p2",
+                    name:"2P",
+                    avatar:"🐰",
+                    hp:100,
+                    maxHp:100
+                }
+
+            ];
+
+        }
+
+
+        this.startBattleScreen();
+
+        this.setupRound(0);
+
+    }
+
+
+    /* =====================================================
+       BATTLE SCREEN
+    ===================================================== */
+
+    startBattleScreen(){
+
+        this.hideAllScreens();
+
+        const screen=
+            document.getElementById(
+                "battleScreen"
+            );
+
+        screen.classList.remove("hidden");
+
+        screen.classList.add("flex");
+
+        this.renderPlayersGrid();
+
+    }
+
+
+    renderPlayersGrid(){
+
+        const grid=
+            document.getElementById(
+                "playersGrid"
+            );
+
+        grid.innerHTML="";
+
+
+        this.players.forEach(
+            (player,index)=>{
+
+                const hp=
+                    Math.max(
+                        0,
+                        Math.min(
+                            100,
+                            player.hp/
+                            player.maxHp*
+                            100
+                        )
+                    );
+
+
+                const card=
+                    document.createElement("div");
+
+
+                card.className=
+                    "bg-indigo-950 rounded-xl p-3";
+
+
+                card.innerHTML=`
+
+                    <div class="flex justify-between items-center">
+
+                        <div class="flex items-center gap-2">
+
+                            <span class="text-xl">
+                                ${player.avatar}
+                            </span>
+
+                            <span class="font-bold text-sm truncate">
+                                ${this.escapeHtml(player.name)}
+                            </span>
+
+                        </div>
+
+                        <span class="text-yellow-300 text-xs">
+                            ${player.hp} HP
+                        </span>
+
+                    </div>
+
+
+                    <div class="bg-slate-900 h-2 rounded-full mt-2 overflow-hidden">
+
+                        <div
+                            class="hp-bar bg-emerald-400 h-full"
+                            style="width:${hp}%">
+                        </div>
+
+                    </div>
+
+                `;
+
+
+                grid.appendChild(card);
+
+            }
+        );
+
+    }
+
+
+    /* =====================================================
+       ROUND
+    ===================================================== */
+
+    setupRound(index){
+
+        this.currentRound++;
+
+        if(
+            this.currentRound>
+            this.totalRounds
+        ){
+
+            this.endGame();
+
+            return;
+        }
+
+
+        this.clearTimer();
+
+
+        this.currentQuestion=
+            this.shuffledQuestions[
+                index%
+                this.shuffledQuestions.length
+            ];
+
+
+        this.submittedAnswers={};
+
+
+        this.isAnsweringAllowed=true;
+
+
+        document
+            .getElementById(
+                "stageProgress"
+            )
+            .innerText=
+            `라운드 ${this.currentRound} / ${this.totalRounds}`;
+
+
+        document
+            .getElementById(
+                "questionCategory"
+            )
+            .innerText=
+            "📌 "+
+            this.currentQuestion.category;
+
+
+        document
+            .getElementById(
+                "questionText"
+            )
+            .innerText=
+            this.currentQuestion.sentence;
+
+
+        const options=
+            document.getElementById(
+                "optionsContainer"
+            );
+
+        options.innerHTML="";
+
+
+        this.currentQuestion.options
+            .forEach((option,index)=>{
+
+                const button=
+                    document.createElement("button");
+
+                button.className=
+                    "bg-indigo-700 hover:bg-indigo-600 "+
+                    "p-4 rounded-xl font-jua text-lg "+
+                    "border border-indigo-500";
+
+                button.innerHTML=
+                    `<span class="text-yellow-300 mr-2">
+                        ${index+1}.
+                     </span>
+                     ${this.escapeHtml(option)}`;
+
+
+                button.onclick=()=>{
+
+                    this.handleOptionClick(index);
+
+                };
+
+
+                options.appendChild(button);
+
+            });
+
+
+        this.startTimer();
+
+    }
+
+
+    /* =====================================================
+       TIMER
+    ===================================================== */
+
+    startTimer(){
+
+        this.clearTimer();
+
+        this.timeLeft=this.maxTime;
+
+
+        const bar=
+            document.getElementById(
+                "timerBar"
+            );
+
+
+        bar.style.transition="none";
+
+        bar.style.width="100%";
+
+
+        setTimeout(()=>{
+
+            bar.style.transition=
+                `width ${this.maxTime}s linear`;
+
+            bar.style.width="0%";
+
+        },20);
+
+
+        this.timerInterval=
+            setInterval(()=>{
+
+                this.timeLeft--;
+
+                if(this.timeLeft<=0){
+
+                    this.clearTimer();
+
+                    this.handleTimeout();
+
+                }
+
+            },1000);
+
+    }
+
+
+    clearTimer(){
+
+        if(this.timerInterval){
+
+            clearInterval(
+                this.timerInterval
+            );
+
+            this.timerInterval=null;
+
+        }
+
+    }
+
+
+    /* =====================================================
+       ANSWER
+    ===================================================== */
+
+    handleOptionClick(optionIndex){
+
+        if(!this.isAnsweringAllowed){
+            return;
+        }
+
+
+        this.sound.playClick();
+
+
+        if(
+            this.mode==="4p_host" ||
+            this.mode==="4p_guest"
+        ){
+
+            this.isAnsweringAllowed=false;
+
+            document
+                .getElementById(
+                    "waitingOthersOverlay"
+                )
+                .classList
+                .remove("hidden");
+
+            document
+                .getElementById(
+                    "waitingOthersOverlay"
+                )
+                .classList
+                .add("flex");
+
+
+            if(this.isHost){
+
+                this.submittedAnswers[
+                    "host"
+                ]=optionIndex;
+
+                this.checkAllAnswersSubmitted();
+
+            }else{
+
+                if(
+                    !this.guestConn ||
+                    !this.guestConn.open
+                ){
+
+                    this.showToast(
+                        "방장과의 연결이 끊어졌습니다.",
+                        "❌"
+                    );
+
                     return;
                 }
 
-                this.shuffledQuestions = [...QUIZ_DATABASE].sort(() => Math.random() - 0.5);
-                this.currentRound = 0;
 
-                this.broadcastGameState('START_GAME', {
-                    players: this.players,
-                    questions: this.shuffledQuestions,
-                    questionIndex: 0
+                this.guestConn.send({
+
+                    type:"SUBMIT_ANSWER",
+
+                    playerId:this.myPlayerId,
+
+                    optionIndex:optionIndex
+
                 });
 
-                this.startBattleScreen();
-                this.setupRound(0);
             }
 
-            startBattle(mode) {
-                this.sound.playClick();
-                this.mode = mode;
-                this.currentRound = 0;
-                this.shuffledQuestions = [...QUIZ_DATABASE].sort(() => Math.random() - 0.5);
+            return;
+        }
 
-                if (mode === '1p') {
-                    this.players = [
-                        { id: 'p1', name: '나 (플레이어)', avatar: '🤠', hp: 100, maxHp: 100 },
-                        { id: 'p2', name: '세종봇 (AI)', avatar: '🤖', hp: 100, maxHp: 100, isAi: true }
-                    ];
-                } else if (mode === '2p') {
-                    this.players = [
-                        { id: 'p1', name: '1P 플레이어', avatar: '🦊', hp: 100, maxHp: 100 },
-                        { id: 'p2', name: '2P 플레이어', avatar: '🐰', hp: 100, maxHp: 100 }
-                    ];
-                }
 
-                this.startBattleScreen();
-                this.setupRound(0);
-            }
+        this.isAnsweringAllowed=false;
 
-            startBattleScreen() {
-                this.hideAllScreens();
-                const battleScreen = document.getElementById('battleScreen');
-                battleScreen.classList.remove('hidden');
-                battleScreen.classList.add('flex');
+        this.clearTimer();
 
-                const mpStatus = document.getElementById('multiplayerStatus');
-                if (this.mode.startsWith('4p')) {
-                    mpStatus.classList.remove('hidden');
-                } else {
-                    mpStatus.classList.add('hidden');
-                }
+        this.evaluateLocal(
+            optionIndex
+        );
 
-                this.renderPlayersGrid();
-            }
+    }
 
-            renderPlayersGrid() {
-                const grid = document.getElementById('playersGrid');
-                grid.innerHTML = '';
 
-                this.players.forEach((p, idx) => {
-                    const hpPercent = Math.max(0, Math.min(100, (p.hp / p.maxHp) * 100));
-                    let barColor = 'bg-emerald-400';
-                    if (hpPercent < 30) barColor = 'bg-red-500';
-                    else if (hpPercent < 60) barColor = 'bg-amber-400';
+    /* =====================================================
+       LOCAL
+    ===================================================== */
 
-                    const card = document.createElement('div');
-                    card.id = `player-card-${idx}`;
-                    card.className = `bg-indigo-950/80 p-2.5 sm:p-3 rounded-xl border ${idx === this.activePlayerIdx ? 'border-yellow-400 ring-2 ring-yellow-400/50' : 'border-indigo-700/50'} flex flex-col justify-between relative transition-all`;
+    evaluateLocal(optionIndex){
 
-                    card.innerHTML = `
-                        <div class="flex items-center justify-between mb-1.5">
-                            <div class="flex items-center gap-1.5 overflow-hidden">
-                                <span class="text-xl sm:text-2xl">${p.avatar}</span>
-                                <span class="font-jua text-xs sm:text-sm text-white truncate">${p.name}</span>
-                            </div>
-                            <span class="font-mono text-xs font-bold text-yellow-300">${p.hp} HP</span>
-                        </div>
-                        <div class="w-full bg-slate-900 h-2.5 rounded-full overflow-hidden border border-indigo-900/80">
-                            <div class="hp-bar-fill ${barColor} h-full" style="width: ${hpPercent}%"></div>
-                        </div>
-                    `;
-                    grid.appendChild(card);
-                });
-            }
+        const correct=
+            optionIndex===
+            this.currentQuestion.correct;
 
-            setupRound(qIndex) {
-                this.currentRound++;
-                document.getElementById('stageProgress').innerText = `라운드 ${this.currentRound} / ${this.totalRounds}`;
-                document.getElementById('explanationBox').classList.add('hidden');
-                document.getElementById('waitingOthersOverlay').classList.add('hidden');
-                
-                this.currentQuestion = this.shuffledQuestions[qIndex % this.shuffledQuestions.length];
-                this.submittedAnswers = {};
-                this.isAnsweringAllowed = true;
 
-                // Set Active Turn Badge
-                const turnBadge = document.getElementById('turnBadge');
-                if (this.mode === '2p') {
-                    this.activePlayerIdx = (this.currentRound - 1) % 2;
-                    turnBadge.innerText = `${this.players[this.activePlayerIdx].name} 차례!`;
-                } else {
-                    turnBadge.innerText = `라운드 ${this.currentRound}`;
-                }
+        if(this.mode==="1p"){
 
-                this.renderPlayersGrid();
+            const player=
+                this.players[0];
 
-                // Populate Quiz
-                document.getElementById('questionCategory').innerText = `📌 ${this.currentQuestion.category}`;
-                document.getElementById('questionText').innerText = this.currentQuestion.sentence;
+            const ai=
+                this.players[1];
 
-                const optsContainer = document.getElementById('optionsContainer');
-                optsContainer.innerHTML = '';
 
-                this.currentQuestion.options.forEach((opt, idx) => {
-                    const btn = document.createElement('button');
-                    btn.onclick = () => this.handleOptionClick(idx);
-                    btn.className = 'w-full bg-indigo-800/80 hover:bg-indigo-700/90 text-white font-jua text-lg sm:text-2xl py-3.5 sm:py-5 px-4 rounded-xl border border-indigo-500/50 shadow-md transition transform active:scale-95 flex items-center justify-center gap-2 group';
-                    btn.innerHTML = `
-                        <span class="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-indigo-950/80 text-yellow-300 border border-indigo-600/60 flex items-center justify-center text-xs sm:text-sm font-bold group-hover:bg-yellow-400 group-hover:text-indigo-950 transition">${idx + 1}</span>
-                        <span>${opt}</span>
-                    `;
-                    optsContainer.appendChild(btn);
-                });
+            if(correct){
 
-                this.startTimer();
-            }
+                player.hp=
+                    Math.min(
+                        100,
+                        player.hp+15
+                    );
 
-            startTimer() {
-                this.clearIntervals();
-                this.timeLeft = this.maxTime;
-                const timerBar = document.getElementById('timerBar');
-                timerBar.style.transition = 'none';
-                timerBar.style.width = '100%';
+                ai.hp=
+                    Math.max(
+                        0,
+                        ai.hp-25
+                    );
 
-                // Force Reflow
-                void timerBar.offsetWidth;
+                this.sound.playCorrect();
 
-                timerBar.style.transition = `width ${this.maxTime}s linear`;
-                timerBar.style.width = '0%';
+            }else{
 
-                this.timerInterval = setInterval(() => {
-                    this.timeLeft--;
-                    if (this.timeLeft <= 0) {
-                        this.clearIntervals();
-                        this.handleTimeout();
-                    }
-                }, 1000);
-            }
+                player.hp=
+                    Math.max(
+                        0,
+                        player.hp-20
+                    );
 
-            handleOptionClick(optIdx) {
-                if (!this.isAnsweringAllowed) return;
-                this.sound.playClick();
-
-                if (this.mode.startsWith('4p')) {
-                    this.isAnsweringAllowed = false;
-                    document.getElementById('waitingOthersOverlay').classList.remove('hidden');
-
-                    const myPlayerId = this.isHost ? 'host' : this.players.find(p => p.connId === this.peer.id)?.id;
-                    
-                    if (this.isHost) {
-                        this.submittedAnswers[myPlayerId] = optIdx;
-                        this.checkAllAnswersSubmitted();
-                    } else {
-                        this.guestConn.send({
-                            type: 'SUBMIT_ANSWER',
-                            playerId: myPlayerId,
-                            optionIndex: optIdx
-                        });
-                    }
-                } else {
-                    this.isAnsweringAllowed = false;
-                    this.clearIntervals();
-                    this.evaluateSingleOrLocalTurn(optIdx);
-                }
-            }
-
-            evaluateSingleOrLocalTurn(optIdx) {
-                const correctIdx = this.currentQuestion.correct;
-                const isCorrect = (optIdx === correctIdx);
-
-                if (this.mode === '1p') {
-                    // Player vs AI
-                    const p1 = this.players[0];
-                    const ai = this.players[1];
-
-                    // AI randomized choice (80% accuracy)
-                    const aiCorrect = Math.random() < 0.8;
-                    const aiOpt = aiCorrect ? correctIdx : (1 - correctIdx);
-
-                    if (isCorrect) {
-                        this.sound.playCorrect();
-                        this.sound.playAttack();
-                        p1.hp = Math.min(p1.maxHp, p1.hp + 15);
-                        ai.hp = Math.max(0, ai.hp - 25);
-                        this.fx.triggerAttackVisual('player-card-1', '-25 HP');
-                    } else {
-                        this.sound.playWrong();
-                        p1.hp = Math.max(0, p1.hp - 20);
-                        this.fx.triggerAttackVisual('player-card-0', '-20 HP');
-                    }
-
-                    if (aiOpt === correctIdx) {
-                        ai.hp = Math.min(ai.maxHp, ai.hp + 15);
-                        p1.hp = Math.max(0, p1.hp - 15);
-                        this.fx.triggerAttackVisual('player-card-0', '-15 HP');
-                    }
-                } else if (this.mode === '2p') {
-                    // Local 2 Player turn
-                    const attacker = this.players[this.activePlayerIdx];
-                    const defender = this.players[1 - this.activePlayerIdx];
-
-                    if (isCorrect) {
-                        this.sound.playCorrect();
-                        this.sound.playAttack();
-                        attacker.hp = Math.min(attacker.maxHp, attacker.hp + 15);
-                        defender.hp = Math.max(0, defender.hp - 25);
-                        this.fx.triggerAttackVisual(`player-card-${1 - this.activePlayerIdx}`, '-25 HP');
-                    } else {
-                        this.sound.playWrong();
-                        attacker.hp = Math.max(0, attacker.hp - 20);
-                        this.fx.triggerAttackVisual(`player-card-${this.activePlayerIdx}`, '-20 HP');
-                    }
-                }
-
-                this.renderPlayersGrid();
-                this.showRoundExplanation(isCorrect, optIdx, this.currentQuestion.explanation, this.currentQuestion.tip);
-            }
-
-            checkAllAnswersSubmitted() {
-                if (!this.isHost) return;
-
-                // Check if all active players responded
-                const activePlayers = this.players.filter(p => p.hp > 0);
-                const respondedCount = Object.keys(this.submittedAnswers).length;
-
-                if (respondedCount >= activePlayers.length) {
-                    this.evaluate4PRound();
-                }
-            }
-
-            evaluate4PRound() {
-                this.clearIntervals();
-                const correctIdx = this.currentQuestion.correct;
-
-                this.players.forEach((p, idx) => {
-                    const ans = this.submittedAnswers[p.id];
-                    if (ans === undefined) {
-                        // Timeout for player
-                        p.hp = Math.max(0, p.hp - 20);
-                    } else if (ans === correctIdx) {
-                        p.hp = Math.min(p.maxHp, p.hp + 15);
-                        // Deal damage to everyone else
-                        this.players.forEach((other, oIdx) => {
-                            if (oIdx !== idx) other.hp = Math.max(0, other.hp - 10);
-                        });
-                    } else {
-                        p.hp = Math.max(0, p.hp - 20);
-                    }
-                });
-
-                this.broadcastGameState('ROUND_RESULT', {
-                    players: this.players,
-                    correct: true,
-                    explanation: this.currentQuestion.explanation,
-                    tip: this.currentQuestion.tip
-                });
-
-                this.renderPlayersGrid();
-                this.showRoundExplanation(true, null, this.currentQuestion.explanation, this.currentQuestion.tip);
-            }
-
-            handleTimeout() {
-                this.isAnsweringAllowed = false;
                 this.sound.playWrong();
 
-                const p = this.players[this.activePlayerIdx || 0];
-                p.hp = Math.max(0, p.hp - 15);
-                this.renderPlayersGrid();
-
-                this.showRoundExplanation(false, -1, `시간 초과! 정답은 '${this.currentQuestion.options[this.currentQuestion.correct]}'입니다.`, this.currentQuestion.tip);
             }
 
-            showRoundExplanation(isCorrect, selectedOpt, explanation, tip) {
-                const expBox = document.getElementById('explanationBox');
-                const iconBox = document.getElementById('resultIconBox');
-                const title = document.getElementById('resultTitle');
-                const text = document.getElementById('resultText');
-                const tipText = document.getElementById('tipText');
+        }else{
 
-                if (isCorrect) {
-                    iconBox.className = 'w-12 h-12 rounded-full flex items-center justify-center text-2xl shrink-0 shadow-inner bg-emerald-500/20 text-emerald-300 border border-emerald-400/40';
-                    iconBox.innerText = '⭕';
-                    title.innerText = '정답입니다!';
-                    title.className = 'font-jua text-lg sm:text-xl mb-1.5 text-emerald-300';
-                } else {
-                    iconBox.className = 'w-12 h-12 rounded-full flex items-center justify-center text-2xl shrink-0 shadow-inner bg-red-500/20 text-red-300 border border-red-400/40';
-                    iconBox.innerText = '❌';
-                    title.innerText = '오답입니다!';
-                    title.className = 'font-jua text-lg sm:text-xl mb-1.5 text-red-300';
-                }
+            const attacker=
+                this.players[
+                    (this.currentRound-1)%2
+                ];
 
-                text.innerText = explanation;
-                tipText.innerText = tip;
+            const defender=
+                this.players[
+                    1-
+                    ((this.currentRound-1)%2)
+                ];
 
-                const nextWrapper = document.getElementById('nextTurnBtnWrapper');
-                const waitingHostNext = document.getElementById('waitingHostNextText');
 
-                if (this.mode === '4p_guest') {
-                    nextWrapper.classList.add('hidden');
-                    waitingHostNext.classList.remove('hidden');
-                } else {
-                    nextWrapper.classList.remove('hidden');
-                    waitingHostNext.classList.add('hidden');
-                }
+            if(correct){
 
-                expBox.classList.remove('hidden');
+                attacker.hp=
+                    Math.min(
+                        100,
+                        attacker.hp+15
+                    );
+
+                defender.hp=
+                    Math.max(
+                        0,
+                        defender.hp-25
+                    );
+
+                this.sound.playCorrect();
+
+            }else{
+
+                attacker.hp=
+                    Math.max(
+                        0,
+                        attacker.hp-20
+                    );
+
+                this.sound.playWrong();
+
             }
 
-            proceedNextTurn() {
-                this.sound.playClick();
-
-                // Check game over condition
-                const alivePlayers = this.players.filter(p => p.hp > 0);
-
-                if (this.currentRound >= this.totalRounds || alivePlayers.length <= 1) {
-                    this.endGame();
-                    return;
-                }
-
-                const nextQIdx = this.currentRound;
-
-                if (this.mode === '4p_host') {
-                    this.broadcastGameState('NEXT_ROUND', { questionIndex: nextQIdx });
-                }
-
-                this.setupRound(nextQIdx);
-            }
-
-            endGame() {
-                if (this.mode === '4p_host') {
-                    this.broadcastGameState('GAME_OVER', { players: this.players });
-                }
-                this.showGameOverScreen();
-            }
-
-            showGameOverScreen() {
-                this.clearIntervals();
-                this.sound.playWin();
-                this.fx.startConfetti();
-
-                this.hideAllScreens();
-                document.getElementById('resultScreen').classList.remove('hidden');
-
-                // Sort Leaderboard by HP descending
-                const sorted = [...this.players].sort((a, b) => b.hp - a.hp);
-                const winner = sorted[0];
-
-                document.getElementById('winnerText').innerText = `${winner.name} 승리! 🎉`;
-                document.getElementById('winnerSubtext').innerText = `최후까지 남은 체력: ${winner.hp} HP`;
-
-                const list = document.getElementById('leaderboardList');
-                list.innerHTML = '';
-
-                sorted.forEach((p, rank) => {
-                    const row = document.createElement('div');
-                    row.className = `flex items-center justify-between p-3 rounded-xl border ${rank === 0 ? 'bg-yellow-400/20 border-yellow-400/60 text-yellow-300 font-bold' : 'bg-indigo-900/60 border-indigo-800 text-slate-200'}`;
-                    row.innerHTML = `
-                        <div class="flex items-center gap-3">
-                            <span class="font-jua text-base sm:text-lg w-6">${rank === 0 ? '🥇' : rank === 1 ? '🥈' : rank === 2 ? '🥉' : rank + 1}</span>
-                            <span class="text-xl">${p.avatar}</span>
-                            <span class="font-bold text-sm sm:text-base">${p.name}</span>
-                        </div>
-                        <span class="font-mono text-sm sm:text-base font-extrabold">${p.hp} HP</span>
-                    `;
-                    list.appendChild(row);
-                });
-            }
-
-            restartBattle() {
-                this.sound.playClick();
-                if (this.mode.startsWith('4p')) {
-                    if (this.isHost) {
-                        this.startMultiplayerGame();
-                    } else {
-                        this.showToast('방장이 게임을 다시 시작하길 기다려주세요.', '⏳');
-                    }
-                } else {
-                    this.startBattle(this.mode);
-                }
-            }
         }
 
-        // Initialize Game Instance on window load
-        let game;
-        window.addEventListener('load', () => {
-            game = new GameController();
-            game.init();
-        });
-    </script>
+
+        this.renderPlayersGrid();
+
+
+        this.showRoundExplanation(
+
+            correct,
+
+            optionIndex,
+
+            this.currentQuestion.explanation,
+
+            this.currentQuestion.tip
+
+        );
+
+    }
+
+
+    /* =====================================================
+       CHECK ALL ANSWERS
+    ===================================================== */
+
+    checkAllAnswersSubmitted(){
+
+        if(!this.isHost){
+            return;
+        }
+
+
+        const activePlayers=
+            this.players.filter(
+                p=>p.hp>0
+            );
+
+
+        const count=
+            Object.keys(
+                this.submittedAnswers
+            ).length;
+
+
+        if(
+            count>=activePlayers.length
+        ){
+
+            this.evaluateMultiplayerRound();
+
+        }
+
+    }
+
+
+    /* =====================================================
+       MULTIPLAYER ROUND
+    ===================================================== */
+
+    evaluateMultiplayerRound(){
+
+        this.clearTimer();
+
+        const correct=
+            this.currentQuestion.correct;
+
+
+        this.players.forEach(
+            (player,index)=>{
+
+                const answer=
+                    this.submittedAnswers[
+                        player.id
+                    ];
+
+
+                if(answer===undefined){
+
+                    player.hp=
+                        Math.max(
+                            0,
+                            player.hp-20
+                        );
+
+                }else if(
+                    answer===correct
+                ){
+
+                    player.hp=
+                        Math.min(
+                            100,
+                            player.hp+15
+                        );
+
+
+                    this.players.forEach(
+                        (other,otherIndex)=>{
+
+                            if(
+                                otherIndex!==index
+                            ){
+
+                                other.hp=
+                                    Math.max(
+                                        0,
+                                        other.hp-10
+                                    );
+                            }
+
+                        }
+                    );
+
+                }else{
+
+                    player.hp=
+                        Math.max(
+                            0,
+                            player.hp-20
+                        );
+
+                }
+
+            }
+        );
+
+
+        this.broadcastGameState(
+            "ROUND_RESULT",
+            {
+
+                players:this.players,
+
+                correct:true,
+
+                selectedOption:null,
+
+                explanation:
+                    this.currentQuestion.explanation,
+
+                tip:
+                    this.currentQuestion.tip
+
+            }
+        );
+
+
+        this.renderPlayersGrid();
+
+
+        this.showRoundExplanation(
+            true,
+            null,
+            this.currentQuestion.explanation,
+            this.currentQuestion.tip
+        );
+
+    }
+
+
+    /* =====================================================
+       TIMEOUT
+    ===================================================== */
+
+    handleTimeout(){
+
+        if(!this.isAnsweringAllowed){
+            return;
+        }
+
+
+        this.isAnsweringAllowed=false;
+
+
+        if(
+            this.mode==="4p_guest"
+        ){
+
+            document
+                .getElementById(
+                    "waitingOthersOverlay"
+                )
+                .classList
+                .remove("hidden");
+
+            document
+                .getElementById(
+                    "waitingOthersOverlay"
+                )
+                .classList
+                .add("flex");
+
+            return;
+
+        }
+
+
+        const player=
+            this.players[
+                (this.currentRound-1)%2
+            ];
+
+
+        player.hp=
+            Math.max(
+                0,
+                player.hp-15
+            );
+
+
+        this.sound.playWrong();
+
+
+        this.renderPlayersGrid();
+
+
+        this.showRoundExplanation(
+
+            false,
+
+            -1,
+
+            `시간 초과! 정답은 '${this.currentQuestion.options[this.currentQuestion.correct]}'입니다.`,
+
+            this.currentQuestion.tip
+
+        );
+
+    }
+
+
+    /* =====================================================
+       EXPLANATION
+    ===================================================== */
+
+    showRoundExplanation(
+        isCorrect,
+        selectedOption,
+        explanation,
+        tip
+    ){
+
+        const box=
+            document.getElementById(
+                "explanationBox"
+            );
+
+
+        const title=
+            document.getElementById(
+                "resultTitle"
+            );
+
+
+        title.innerText=
+            isCorrect
+            ? "⭕ 정답입니다!"
+            : "❌ 오답입니다!";
+
+
+        title.className=
+            "font-jua text-2xl mb-3 "+
+            (
+                isCorrect
+                ?"text-emerald-300"
+                :"text-red-300"
+            );
+
+
+        document
+            .getElementById(
+                "resultText"
+            )
+            .innerText=explanation;
+
+
+        document
+            .getElementById(
+                "tipText"
+            )
+            .innerText=tip;
+
+
+        box.classList.remove("hidden");
+
+
+        const next=
+            document.getElementById(
+                "nextBtn"
+            );
+
+        const waiting=
+            document.getElementById(
+                "waitingHostNextText"
+            );
+
+
+        if(this.mode==="4p_guest"){
+
+            next.classList.add("hidden");
+
+            waiting.classList.remove("hidden");
+
+        }else{
+
+            next.classList.remove("hidden");
+
+            waiting.classList.add("hidden");
+
+        }
+
+    }
+
+
+    /* =====================================================
+       NEXT ROUND
+    ===================================================== */
+
+    proceedNextTurn(){
+
+        if(
+            this.mode==="4p_guest"
+        ){
+
+            return;
+
+        }
+
+
+        const alive=
+            this.players.filter(
+                p=>p.hp>0
+            );
+
+
+        if(
+            this.currentRound>=
+            this.totalRounds
+            ||
+            alive.length<=1
+        ){
+
+            this.endGame();
+
+            return;
+
+        }
+
+
+        const nextIndex=
+            this.currentRound;
+
+
+        if(
+            this.mode==="4p_host"
+        ){
+
+            this.broadcastGameState(
+                "NEXT_ROUND",
+                {
+                    questionIndex:nextIndex
+                }
+            );
+
+        }
+
+
+        this.setupRound(
+            nextIndex
+        );
+
+    }
+
+
+    /* =====================================================
+       END GAME
+    ===================================================== */
+
+    endGame(){
+
+        this.clearTimer();
+
+
+        if(this.mode==="4p_host"){
+
+            this.broadcastGameState(
+                "GAME_OVER",
+                {
+                    players:this.players
+                }
+            );
+
+        }
+
+
+        this.showGameOverScreen();
+
+    }
+
+
+    /* =====================================================
+       RESULT
+    ===================================================== */
+
+    showGameOverScreen(){
+
+        this.clearTimer();
+
+        this.hideAllScreens();
+
+        document
+            .getElementById(
+                "resultScreen"
+            )
+            .classList
+            .remove("hidden");
+
+
+        const sorted=
+            [...this.players]
+            .sort(
+                (a,b)=>b.hp-a.hp
+            );
+
+
+        const winner=
+            sorted[0];
+
+
+        document
+            .getElementById(
+                "winnerText"
+            )
+            .innerText=
+            `${winner.name} 승리! 🎉`;
+
+
+        document
+            .getElementById(
+                "winnerSubtext"
+            )
+            .innerText=
+            `최종 체력 ${winner.hp} HP`;
+
+
+        const list=
+            document.getElementById(
+                "leaderboardList"
+            );
+
+        list.innerHTML="";
+
+
+        sorted.forEach(
+            (player,index)=>{
+
+                const row=
+                    document.createElement("div");
+
+
+                row.className=
+                    "bg-indigo-950 rounded-xl p-3 "+
+                    "flex justify-between items-center";
+
+
+                row.innerHTML=`
+
+                    <div class="flex items-center gap-3">
+
+                        <span class="font-bold">
+                            ${index+1}
+                        </span>
+
+                        <span>
+                            ${player.avatar}
+                        </span>
+
+                        <span class="font-bold">
+                            ${this.escapeHtml(player.name)}
+                        </span>
+
+                    </div>
+
+                    <span class="text-yellow-300 font-bold">
+                        ${player.hp} HP
+                    </span>
+
+                `;
+
+
+                list.appendChild(row);
+
+            }
+        );
+
+    }
+
+
+    /* =====================================================
+       RESTART
+    ===================================================== */
+
+    restartBattle(){
+
+        if(
+            this.mode==="4p_guest"
+        ){
+
+            this.showToast(
+                "방장이 다시 시작해야 합니다.",
+                "⏳"
+            );
+
+            return;
+
+        }
+
+
+        if(
+            this.mode==="4p_host"
+        ){
+
+            this.startMultiplayerGame();
+
+            return;
+
+        }
+
+
+        this.startBattle(
+            this.mode
+        );
+
+    }
+
+
+    /* =====================================================
+       LEAVE ROOM
+    ===================================================== */
+
+    leaveRoom(){
+
+        this.showHome();
+
+    }
+
+
+    /* =====================================================
+       NETWORK CLEANUP
+    ===================================================== */
+
+    disconnectNetwork(){
+
+        clearTimeout(
+            this.connectionRetryTimer
+        );
+
+        clearTimeout(
+            this.connectionTimeout
+        );
+
+
+        this.connectionRetryTimer=null;
+
+        this.connectionTimeout=null;
+
+
+        if(this.guestConn){
+
+            try{
+                this.guestConn.close();
+            }catch(e){}
+
+        }
+
+        this.guestConn=null;
+
+
+        if(this.hostConnections){
+
+            this.hostConnections.forEach(
+                conn=>{
+
+                    try{
+                        conn.close();
+                    }catch(e){}
+
+                }
+            );
+
+        }
+
+
+        this.hostConnections=
+            new Map();
+
+
+        if(this.peer){
+
+            try{
+
+                if(
+                    !this.peer.destroyed
+                ){
+
+                    this.peer.destroy();
+
+                }
+
+            }catch(e){
+
+                console.error(e);
+
+            }
+
+        }
+
+
+        this.peer=null;
+
+        this.isHost=false;
+
+        this.hostReady=false;
+
+        this.myPlayerId=null;
+
+    }
+
+
+    /* =====================================================
+       UTILITY
+    ===================================================== */
+
+    randomAvatar(){
+
+        return this.avatars[
+            Math.floor(
+                Math.random()*
+                this.avatars.length
+            )
+        ];
+
+    }
+
+
+    escapeHtml(value){
+
+        return String(value)
+            .replaceAll("&","&amp;")
+            .replaceAll("<","&lt;")
+            .replaceAll(">","&gt;")
+            .replaceAll('"',"&quot;")
+            .replaceAll("'","&#039;");
+
+    }
+
+}
+
+
+/* =========================================================
+   START
+========================================================= */
+
+let game;
+
+window.addEventListener(
+    "load",
+    ()=>{
+
+        game=
+            new GameController();
+
+        game.init();
+
+    }
+);
+
+</script>
+
 </body>
 </html>
