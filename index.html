@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>초등 6학년 한글 맞춤법 대결 마스터 (최대 4인 QR 방 대결)</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- QRCode.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- Google Font: Jua & Noto Sans KR -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        jua: ['Jua', 'sans-serif'],
+                        sans: ['Noto Sans KR', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0284c7',
+                            600: '#0369a1',
+                            700: '#095180',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%);
+            min-height: 100vh;
+            user-select: none;
+        }
+        .font-jua {
+            font-family: 'Jua', sans-serif;
+        }
+        @keyframes attackShake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-6px); }
+            40%, 80% { transform: translateX(6px); }
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-6px); }
+        }
+        .animate-shake { animation: attackShake 0.4s ease-in-out; }
+        .animate-float { animation: float 3s ease-in-out infinite; }
+
+        .glow-box {
+            box-shadow: 0 0 25px rgba(129, 140, 248, 0.35);
+        }
+        .glow-text {
+            text-shadow: 0 0 12px rgba(253, 224, 71, 0.6);
+        }
+        .hp-bar-fill {
+            transition: width 0.4s ease-out, background-color 0.4s;
+        }
+    </style>
+</head>
+<body class="text-slate-100 flex flex-col min-h-screen justify-between overflow-x-hidden">
+
+    <!-- TOP HEADER NAVBAR -->
+    <header class="w-full max-w-5xl mx-auto px-4 pt-4 pb-2 flex justify-between items-center">
+        <div class="flex items-center space-x-3">
+            <span class="text-3xl">⚔️</span>
+            <div>
+                <h1 class="text-2xl sm:text-3xl font-jua text-yellow-300 tracking-wide glow-text">맞춤법 대결 마스터</h1>
+                <p class="text-xs text-indigo-200">초등 6학년 국어 맞춤법 실시간 멀티 대결!</p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-2">
+            <button id="soundToggleBtn" onclick="game.toggleSound()" class="bg-indigo-900/80 hover:bg-indigo-800 text-yellow-300 p-2.5 rounded-xl border border-indigo-500/50 transition flex items-center gap-1.5 text-xs sm:text-sm font-semibold shadow">
+                <span id="soundIcon">🔊</span>
+                <span class="hidden sm:inline">효과음 ON</span>
+            </button>
+            <button onclick="game.showHome()" class="bg-indigo-900/80 hover:bg-indigo-800 text-white p-2.5 rounded-xl border border-indigo-500/50 transition text-xs sm:text-sm font-semibold shadow">
+                🏠 처음으로
+            </button>
+        </div>
+    </header>
+
+    <!-- MAIN GAME CONTAINER -->
+    <main class="w-full max-w-4xl mx-auto px-4 my-auto py-4 flex-1 flex flex-col justify-center">
+
+        <!-- START / MODE SELECT SCREEN -->
+        <section id="startScreen" class="bg-indigo-900/80 backdrop-blur-md rounded-3xl p-6 sm:p-10 border-2 border-indigo-500/40 shadow-2xl text-center glow-box animate-float">
+            <div class="inline-block px-4 py-1.5 bg-yellow-400 text-indigo-950 font-bold rounded-full text-xs sm:text-sm mb-4">
+                🎓 초등학교 6학년 필수 맞춤법 대결
+            </div>
+            <h2 class="text-3xl sm:text-5xl font-jua text-white mb-4 leading-tight">
+                모바일 QR코드로 서바이벌!<br><span class="text-yellow-300">최대 4인 실시간 맞춤법 배틀</span>
+            </h2>
+            <p class="text-indigo-200 text-sm sm:text-base max-w-xl mx-auto mb-8 leading-relaxed">
+                '봬요 vs 뵈요', '맞히다 vs 맞추다', '금세 vs 금새' 등<br class="hidden sm:block">
+                친구들과 함께 스마트폰으로 접속하여 승부를 겨뤄보세요!
+            </p>
+
+            <!-- Mode Selector Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto mb-8">
+                <!-- 1P Mode -->
+                <button onclick="game.startBattle('1p')" class="group bg-gradient-to-br from-blue-600 to-indigo-700 hover:from-blue-500 hover:to-indigo-600 p-5 rounded-2xl border-2 border-blue-400/50 shadow-lg text-left transition transform hover:-translate-y-1">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-3xl">🤖</span>
+                        <span class="bg-blue-400/20 text-blue-200 text-[10px] px-2 py-0.5 rounded-full font-bold">1인 AI</span>
+                    </div>
+                    <h3 class="text-lg font-jua text-yellow-300 mb-1">AI 로봇 대결</h3>
+                    <p class="text-xs text-indigo-100">맞춤법 로봇 '한글이'와 혼자 연습하기.</p>
+                </button>
+
+                <!-- 2P Local Mode -->
+                <button onclick="game.startBattle('2p')" class="group bg-gradient-to-br from-fuchsia-600 to-pink-700 hover:from-fuchsia-500 hover:to-pink-600 p-5 rounded-2xl border-2 border-pink-400/50 shadow-lg text-left transition transform hover:-translate-y-1">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-3xl">⚔️</span>
+                        <span class="bg-pink-400/20 text-pink-200 text-[10px] px-2 py-0.5 rounded-full font-bold">2인 한 화면</span>
+                    </div>
+                    <h3 class="text-lg font-jua text-yellow-300 mb-1">2인 오프라인</h3>
+                    <p class="text-xs text-pink-100">한 화면에서 번갈아 문제를 풀며 대결!</p>
+                </button>
+
+                <!-- 4P QR Room Mode -->
+                <button onclick="game.open4PSetup()" class="group bg-gradient-to-br from-emerald-600 to-teal-700 hover:from-emerald-500 hover:to-teal-600 p-5 rounded-2xl border-2 border-emerald-400/50 shadow-lg text-left transition transform hover:-translate-y-1 ring-2 ring-yellow-400/60">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-3xl">📱</span>
+                        <span class="bg-emerald-400/20 text-yellow-300 text-[10px] px-2 py-0.5 rounded-full font-bold">강력 추천🔥</span>
+                    </div>
+                    <h3 class="text-lg font-jua text-yellow-300 mb-1">4인 QR 멀티 대결</h3>
+                    <p class="text-xs text-emerald-100">QR코드로 각자 스마트폰으로 입장!</p>
+                </button>
+            </div>
+
+            <div class="text-xs text-indigo-300 flex items-center justify-center gap-3">
+                <span>⚡ 10초 제한시간</span>
+                <span>•</span>
+                <span>📱 스마트폰 QR입장</span>
+                <span>•</span>
+                <span>🏆 최대 4인 서바이벌</span>
+            </div>
+        </section>
+
+        <!-- 4P MULTIPLAYER ROOM SETUP SCREEN -->
+        <section id="roomSetupScreen" class="hidden bg-indigo-900/90 backdrop-blur-md rounded-3xl p-6 sm:p-8 border-2 border-indigo-500/40 shadow-2xl text-center glow-box">
+            <h2 class="text-3xl font-jua text-yellow-300 mb-2">📱 4인 QR 멀티플레이 방 선택</h2>
+            <p class="text-xs sm:text-sm text-indigo-200 mb-6">방을 새로 만들어 친구들을 초대를 하거나, 이미 만들어진 방 코드 4자리를 입력하세요.</p>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-2xl mx-auto">
+                <!-- Create Room Panel -->
+                <div class="bg-indigo-950/80 p-5 rounded-2xl border border-indigo-700/60 flex flex-col justify-between">
+                    <div>
+                        <div class="text-3xl mb-2">👑</div>
+                        <h3 class="text-xl font-jua text-yellow-300 mb-2">새 대결 방 개설하기</h3>
+                        <p class="text-xs text-indigo-200 mb-4">선생님이나 방장이 방을 개설하고 QR코드를 화면에 띄웁니다.</p>
+                        <input id="hostNameInput" type="text" placeholder="방장 닉네임 (예: 세종대왕)" value="방장" maxlength="8" class="w-full bg-indigo-900 border border-indigo-600 rounded-xl px-3 py-2 text-center text-sm font-bold text-white mb-3 focus:outline-none focus:ring-2 focus:ring-yellow-400">
+                    </div>
+                    <button onclick="game.create4PRoom()" class="w-full bg-emerald-500 hover:bg-emerald-400 text-indigo-950 font-jua text-base py-3 rounded-xl transition font-bold shadow">
+                        ✨ 방 만들기 & QR 생성
+                    </button>
+                </div>
+
+                <!-- Join Room Panel -->
+                <div class="bg-indigo-950/80 p-5 rounded-2xl border border-indigo-700/60 flex flex-col justify-between">
+                    <div>
+                        <div class="text-3xl mb-2">🔑</div>
+                        <h3 class="text-xl font-jua text-yellow-300 mb-2">방 코드로 입장하기</h3>
+                        <p class="text-xs text-indigo-200 mb-4">전광판/칠판의 4자리 방 코드를 입력하여 대결에 참여하세요.</p>
+                        <input id="joinNameInput" type="text" placeholder="내 닉네임" value="학생" maxlength="8" class="w-full bg-indigo-900 border border-indigo-600 rounded-xl px-3 py-2 text-center text-sm font-bold text-white mb-2 focus:outline-none focus:ring-2 focus:ring-yellow-400">
+                        <input id="joinCodeInput" type="text" placeholder="4자리 코드 (예: 1234)" maxlength="4" class="w-full bg-indigo-900 border border-indigo-600 rounded-xl px-3 py-2 text-center font-mono text-lg font-bold text-yellow-300 tracking-widest uppercase mb-3 focus:outline-none focus:ring-2 focus:ring-yellow-400">
+                    </div>
+                    <button onclick="game.join4PRoom()" class="w-full bg-blue-500 hover:bg-blue-400 text-white font-jua text-base py-3 rounded-xl transition font-bold shadow">
+                        🚀 참가하기
+                    </button>
+                </div>
+            </div>
+
+            <button onclick="game.showHome()" class="mt-6 text-xs text-indigo-300 underline hover:text-white">
+                ⬅️ 취소하고 메인으로 돌아가기
+            </button>
+        </section>
+
+        <!-- LOBBY WAITING SCREEN WITH QR CODE -->
+        <section id="lobbyScreen" class="hidden bg-indigo-900/95 backdrop-blur-md rounded-3xl p-6 sm:p-8 border-2 border-indigo-500/40 shadow-2xl text-center glow-box">
+            <div class="inline-block bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-3 py-1 rounded-full text-xs font-bold mb-3">
+                ● 실시간 클라우드 대기실
+            </div>
+            <h2 class="text-2xl sm:text-3xl font-jua text-white mb-1">
+                대결 상대 대기 중 (<span id="playerCountText" class="text-yellow-300">1</span> / 4명)
+            </h2>
+            <p class="text-xs text-indigo-200 mb-6">스마트폰 카메라로 QR코드를 스캔하거나 방 코드를 입력하면 즉시 접속됩니다!</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center max-w-2xl mx-auto mb-6">
+                <!-- QR Code Box -->
+                <div class="bg-white p-4 rounded-2xl shadow-xl flex flex-col items-center justify-center">
+                    <div id="qrcode" class="p-1"></div>
+                    <div class="mt-2 text-xs font-bold text-slate-800">
+                        방 코드: <span id="lobbyCodeDisplay" class="font-mono text-base text-indigo-600">0000</span>
+                    </div>
+                </div>
+
+                <!-- Joined Players List -->
+                <div class="bg-indigo-950/80 p-4 rounded-2xl border border-indigo-800 flex flex-col gap-2.5">
+                    <div class="text-xs font-bold text-indigo-300 text-left mb-1">참가한 도전자 목록:</div>
+                    <div id="playerLobbyList" class="flex flex-col gap-2">
+                        <!-- Player Items rendered dynamically -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+                <button id="startGameHostBtn" onclick="game.start4PGameFromLobby()" class="flex-1 bg-yellow-400 hover:bg-yellow-300 text-indigo-950 font-jua text-lg py-3 rounded-2xl transition font-bold shadow">
+                    ⚔️ 대결 시작하기!
+                </button>
+                <button onclick="game.leaveRoom()" class="bg-indigo-800 hover:bg-indigo-700 text-slate-200 font-jua text-sm px-4 py-3 rounded-2xl transition">
+                    나가기
+                </button>
+            </div>
+        </section>
+
+        <!-- BATTLE SCREEN -->
+        <section id="battleScreen" class="hidden flex-col gap-3">
+            
+            <!-- CHARACTERS & HEALTH STATUS BARS GRID (Supports up to 4 Players) -->
+            <div id="playersGrid" class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 bg-indigo-950/80 rounded-2xl p-3 border border-indigo-500/30 shadow-xl">
+                <!-- Dynamic Player HP Cards created via JavaScript -->
+            </div>
+
+            <!-- TURN & TIMER HEADER -->
+            <div class="bg-indigo-900/90 rounded-2xl p-3 border border-indigo-500/30 flex flex-col items-center justify-between gap-2 shadow-lg">
+                <div class="flex justify-between w-full items-center px-2">
+                    <span id="turnBadge" class="bg-yellow-400 text-indigo-950 px-3 py-0.5 rounded-full text-xs font-bold font-jua shadow">
+                        👉 문제 도전!
+                    </span>
+                    <span id="stageProgress" class="text-xs text-indigo-200 font-semibold">
+                        라운드 1 / 10
+                    </span>
+                </div>
+                <!-- Time Bar -->
+                <div class="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden">
+                    <div id="timerBar" class="bg-yellow-400 h-full w-full transition-all duration-100 linear"></div>
+                </div>
+            </div>
+
+            <!-- QUIZ CARD -->
+            <div id="quizCard" class="bg-slate-900/90 rounded-2xl p-5 sm:p-7 border-2 border-indigo-400/40 shadow-2xl flex flex-col items-center text-center relative overflow-hidden">
+                <!-- Visual Attack Impact Canvas Overlay -->
+                <canvas id="attackCanvas" class="absolute inset-0 pointer-events-none z-20 w-full h-full"></canvas>
+
+                <span id="questionCategory" class="bg-indigo-800 text-indigo-200 text-xs px-3 py-1 rounded-full font-semibold mb-2">
+                    혼동하기 쉬운 어휘
+                </span>
+
+                <h3 class="text-indigo-200 text-xs sm:text-sm mb-2">괄호 안에 들어갈 바른 맞춤법을 선택하세요!</h3>
+
+                <!-- Question Sentence -->
+                <div id="questionText" class="text-xl sm:text-3xl font-bold text-white mb-5 leading-relaxed font-jua bg-indigo-950/60 p-4 rounded-2xl w-full border border-indigo-800">
+                    내일 선생님을 다시 ( ____ ) 약속했습니다.
+                </div>
+
+                <!-- Answer Options Grid -->
+                <div id="optionsContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 w-full z-10">
+                    <!-- Buttons inserted dynamically -->
+                </div>
+            </div>
+
+            <!-- EXPLANATION MODAL / RESULT BANNER -->
+            <div id="explanationBox" class="hidden bg-emerald-950/90 border-2 border-emerald-500 rounded-2xl p-4 sm:p-5 shadow-2xl transition animate-shake">
+                <div class="flex items-start gap-3">
+                    <span id="resultIcon" class="text-3xl">✅</span>
+                    <div class="flex-1">
+                        <div id="resultTitle" class="font-jua text-base sm:text-lg text-emerald-300 mb-1">정답입니다! 강한 공격 성공!</div>
+                        <p id="resultText" class="text-xs sm:text-sm text-slate-200 mb-2 leading-relaxed">
+                            '봬요'는 '뵈어'가 줄어든 말이므로 '내일 봬요'로 쓰는 것이 맞습니다.
+                        </p>
+                        <div id="tipBox" class="bg-emerald-900/50 p-2 rounded-xl border border-emerald-700/50 text-xs text-emerald-200">
+                            💡 **기억법**: '하/해'를 넣어서 '하요'가 어색하면 '해'(봬)가 맞습니다!
+                        </div>
+                    </div>
+                </div>
+                <button id="nextBtn" onclick="game.nextTurn()" class="w-full mt-3 bg-yellow-400 hover:bg-yellow-300 text-indigo-950 font-jua text-base py-2.5 rounded-xl transition shadow font-bold">
+                    다음 라운드로 진행 ➔
+                </button>
+            </div>
+
+        </section>
+
+        <!-- GAME OVER / RESULTS SCREEN -->
+        <section id="resultScreen" class="hidden bg-indigo-900/90 backdrop-blur-md rounded-3xl p-6 sm:p-8 border-2 border-indigo-500/40 shadow-2xl text-center glow-box">
+            <div id="winnerBadge" class="text-5xl mb-2">🏆</div>
+            <h2 id="winnerText" class="text-2xl sm:text-4xl font-jua text-yellow-300 mb-2">
+                플레이어 1 최종 우승!
+            </h2>
+            <p id="winnerSubtext" class="text-indigo-200 text-xs sm:text-sm mb-6">
+                훌륭합니다! 초등학교 6학년 맞춤법을 완벽히 마스터하셨습니다.
+            </p>
+
+            <!-- Leaderboard Table for 4P -->
+            <div id="leaderboardBox" class="bg-indigo-950/80 rounded-2xl p-4 border border-indigo-800 max-w-lg mx-auto mb-6">
+                <div class="text-xs font-bold text-yellow-400 mb-2 text-left">📊 최종 순위표</div>
+                <div id="leaderboardList" class="flex flex-col gap-2">
+                    <!-- Dynamic Ranking List -->
+                </div>
+            </div>
+
+            <!-- Award Badge Card -->
+            <div class="bg-gradient-to-r from-amber-500/20 to-yellow-500/20 p-3.5 rounded-2xl border border-yellow-500/40 max-w-md mx-auto mb-6 flex items-center gap-3 text-left">
+                <div class="text-3xl" id="badgeIcon">🎖️</div>
+                <div>
+                    <div class="text-[10px] text-yellow-400 font-bold">획득한 맞춤법 칭호</div>
+                    <div id="badgeTitle" class="text-base font-jua text-white">6학년 맞춤법 대마왕</div>
+                    <div id="badgeDesc" class="text-xs text-slate-300">어려운 맞춤법도 막힘없이 맞춰내는 한글의 수호자!</div>
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row justify-center gap-3 max-w-md mx-auto">
+                <button onclick="game.restartGame()" class="flex-1 bg-yellow-400 hover:bg-yellow-300 text-indigo-950 font-jua text-base py-3 rounded-2xl transition shadow font-bold">
+                    🔄 다시 대결하기
+                </button>
+                <button onclick="game.showHome()" class="flex-1 bg-indigo-800 hover:bg-indigo-700 text-white font-jua text-base py-3 rounded-2xl transition border border-indigo-600 shadow">
+                    🏠 메인 화면으로
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="w-full text-center py-3 text-[11px] text-indigo-300/60 border-t border-indigo-900/50">
+        초등 6학년 국어 교육과정 표준 맞춤법 기준 • QR 실시간 4인 서바이벌 대결 게임
+    </footer>
+
+    <!-- Firebase SDK Imports -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Firebase Configuration Fallback
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'spelling-battle-6th';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' 
+            ? JSON.parse(__firebase_config) 
+            : {
+                apiKey: "AIzaSyDummyKeyForQuizAppSpec9981",
+                authDomain: "quiz-game-app.firebaseapp.com",
+                projectId: "quiz-game-app",
+                storageBucket: "quiz-game-app.appspot.com",
+                messagingSenderId: "1234567890",
+                appId: "1:1234567890:web:abcdef123456"
+              };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        // Authenticate User
+        let currentUser = null;
+        async function initAuth() {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    const res = await signInWithCustomToken(auth, __initial_auth_token);
+                    currentUser = res.user;
+                } else {
+                    const res = await signInAnonymously(auth);
+                    currentUser = res.user;
+                }
+            } catch (err) {
+                console.warn("Auth initialization notice:", err);
+            }
+        }
+        initAuth();
+
+        window.firebaseCtx = { 
+            db, 
+            auth, 
+            appId, 
+            getCurrentUser: () => currentUser || auth.currentUser,
+            doc,
+            setDoc,
+            getDoc,
+            updateDoc,
+            onSnapshot
+        };
+    </script>
+
+    <!-- GAME LOGIC SCRIPT -->
+    <script>
+        const QUIZ_DATABASE = [
+            {
+                category: "혼동하기 쉬운 말",
+                sentence: "선생님, 내일 학교 끝나고 다시 ( ____ )!",
+                options: ["봬요", "뵈요"],
+                answer: 0,
+                explanation: "'봬요'는 '뵈어'가 줄어든 형태입니다. '뵈요'는 틀린 표기입니다.",
+                tip: "💡 '해요'를 넣어서 자연스러우면 '봬요'입니다. ('하요' X -> '해요' O -> '봬요')"
+            },
+            {
+                category: "동사 맞춤법",
+                sentence: "열심히 공부해서 문제를 모두 ( ____ )!",
+                options: ["맞혔다", "맞췄다"],
+                answer: 0,
+                explanation: "정답을 적중시키는 것은 '맞히다'가 올바른 표현입니다.",
+                tip: "💡 '맞히다'는 정답/화살을 적중시킬 때, '맞추다'는 서로 비교하거나 조각을 합칠 때 씁니다."
+            },
+            {
+                category: "어휘와 표기",
+                sentence: "청소를 시작하니 방이 ( ____ ) 깨끗해졌다.",
+                options: ["금세", "금새"],
+                answer: 0,
+                explanation: "'금세'는 '금시에'가 줄어든 말로, '금세'로 적어야 합니다.",
+                tip: "💡 '금시에'의 줄임말이므로 '새'가 아닌 '세'입니다!"
+            },
+            {
+                category: "부사 표기법",
+                sentence: "오늘따라 ( ____ ) 좋은 일이 생길 것 같아.",
+                options: ["왠지", "웬지"],
+                answer: 0,
+                explanation: "'왜 그런지 모르게'의 뜻일 때만 '왠지'를 쓰고, 그 외에는 모두 '웬'을 씁니다.",
+                tip: "💡 '왠지' 빼고는 '웬일', '웬 떡'처럼 모두 '웬'을 씁니다!"
+            },
+            {
+                category: "동사 활용",
+                sentence: "약 치료를 받고 나니 감기가 싹 ( ____ ).",
+                options: ["낫았다", "낳았다", "낮았다"],
+                answer: 0,
+                explanation: "병이나 상처가 회복되는 것은 '낫다' -> '낫았다'가 맞습니다.",
+                tip: "💡 '낳았다'는 아기나 알을 출산할 때 쓰는 말입니다."
+            },
+            {
+                category: "조사 및 연결어미",
+                sentence: "할 수 ( ____ ) 없든지 끝까지 최선을 다하자.",
+                options: ["있든지", "있던지"],
+                answer: 0,
+                explanation: "선택이나 무관함을 나타낼 때는 '-든지'를 씁니다.",
+                tip: "💡 '-던지'는 과거의 일을 회상할 때 씁니다. (예: 어찌나 춥던지!)"
+            },
+            {
+                category: "혼동하기 쉬운 말",
+                sentence: "어제 밤에 편지를 우체통에 ( ____ ).",
+                options: ["부쳤다", "붙였다"],
+                answer: 0,
+                explanation: "편지나 물건을 보내는 것은 '부치다'가 올바른 표기입니다.",
+                tip: "💡 '붙이다'는 풀이나 접착제로 피부나 종이에 붙게 만드는 것입니다."
+            },
+            {
+                category: "부사 표기법",
+                sentence: "친구가 갑자기 울먹이니 정말 ( ____ ).",
+                options: ["어이없다", "어의없다"],
+                answer: 0,
+                explanation: "황당하고 기가 막히다는 뜻은 '어이없다'가 맞습니다.",
+                tip: "💡 '어의'는 조선시대 왕을 진료하던 의사를 뜻합니다!"
+            },
+            {
+                category: "표준어 및 맞춤법",
+                sentence: "오늘이 몇 월 ( ____ )인지 확인해 보자.",
+                options: ["며칠", "몇 일"],
+                answer: 0,
+                explanation: "날짜를 물을 때는 '몇 일'이 아닌 항상 '며칠'로 적습니다.",
+                tip: "💡 한글 맞춤법상 '몇 일'이라는 표기는 존재하지 않습니다!"
+            },
+            {
+                category: "명사형 어미",
+                sentence: "내일 소풍을 갈 생각에 가슴이 ( ____ ).",
+                options: ["설렘", "설레임"],
+                answer: 0,
+                explanation: "'설레다'의 명사형은 어미 '-ㅁ'이 붙어 '설렘'이 맞습니다.",
+                tip: "💡 '설레임'은 제품 상표명일 뿐, 표준어는 '설렘'입니다."
+            },
+            {
+                category: "어휘 표기법",
+                sentence: "집에 돌아가는 길에 문구점에 ( ____ ).",
+                options: ["들렀다", "들렸다"],
+                answer: 0,
+                explanation: "지나는 길에 잠깐 방문하는 것은 기본형 '들르다' -> '들렀다'입니다.",
+                tip: "💡 '들렸다'는 소리가 귀에 들리거나 물건이 위로 들린 것입니다."
+            },
+            {
+                category: "부사 표기법",
+                sentence: "책상을 물걸레로 ( ____ ) 닦았다.",
+                options: ["깨끗이", "깨끗히"],
+                answer: 0,
+                explanation: "'ㅅ' 받침 뒤에 붙는 부사 형성 접미사는 '-이'가 올바릅니다.",
+                tip: "💡 '깨끗이', '느긋이', '번듯이'처럼 'ㅅ' 받침 뒤엔 '-이'!"
+            },
+            {
+                category: "용언 활용",
+                sentence: "나한테 말도 안 하고 가 버리면 나 지금 ( ____ )?",
+                options: ["어떡해", "어떻게"],
+                answer: 0,
+                explanation: "문장 끝 서술어로는 '어떻게 해'의 줄임말인 '어떡해'가 맞습니다.",
+                tip: "💡 문장 중간 꾸밈은 '어떻게', 문장 끝 서술어는 '어떡해'!"
+            },
+            {
+                category: "시간 부사",
+                sentence: "고향 친구를 정말 ( ____ ) 만나 반가웠다.",
+                options: ["오랜만에", "오랫만에"],
+                answer: 0,
+                explanation: "'오래간만'의 줄임말이므로 '오랜만에'가 올바른 표현입니다.",
+                tip: "💡 '오랫동안'은 'ㅅ'이 들어가지만, '오랜만에'는 'ㄴ' 받침입니다."
+            },
+            {
+                category: "단어 맞춤법",
+                sentence: "오해가 잘 풀려서 다행히 일이 잘 ( ____ ).",
+                options: ["됐다", "됬다"],
+                answer: 0,
+                explanation: "'되었다'의 줄임말은 '됐다'입니다. '됬'이라는 글자는 국어에 없습니다.",
+                tip: "💡 '하/해'를 대입했을 때 '했다'가 맞으므로 '됐다'가 맞습니다!"
+            }
+        ];
+
+        class SoundEffects {
+            constructor() {
+                this.ctx = null;
+                this.enabled = true;
+            }
+            init() {
+                if (!this.ctx) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+            }
+            playCorrect() {
+                if (!this.enabled) return;
+                this.init();
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(523.25, now);
+                osc.frequency.setValueAtTime(659.25, now + 0.1);
+                osc.frequency.setValueAtTime(783.99, now + 0.2);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.5);
+            }
+            playWrong() {
+                if (!this.enabled) return;
+                this.init();
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(220, now);
+                osc.frequency.setValueAtTime(170, now + 0.15);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.4);
+            }
+        }
+
+        class GameEngine {
+            constructor() {
+                this.mode = '1p'; // '1p', '2p', '4p'
+                this.sfx = new SoundEffects();
+                
+                this.currentRound = 0;
+                this.maxRounds = 10;
+                this.activeTurnPlayer = 1;
+
+                this.players = [];
+                this.myPlayerIndex = 0;
+
+                this.questionsPool = [];
+                this.currentQuestion = null;
+                
+                this.timer = null;
+                this.timeLeft = 10;
+                this.isAnswering = false;
+
+                // Room & Firebase real-time state
+                this.roomCode = null;
+                this.isHost = false;
+                this.roomUnsubscribe = null;
+
+                // DOM Elements
+                this.startScreen = document.getElementById('startScreen');
+                this.roomSetupScreen = document.getElementById('roomSetupScreen');
+                this.lobbyScreen = document.getElementById('lobbyScreen');
+                this.battleScreen = document.getElementById('battleScreen');
+                this.resultScreen = document.getElementById('resultScreen');
+                this.explanationBox = document.getElementById('explanationBox');
+
+                // Auto join if URL query has ?room=1234
+                this.checkUrlParams();
+            }
+
+            checkUrlParams() {
+                const urlParams = new URLSearchParams(window.location.search);
+                const code = urlParams.get('room');
+                if (code && code.length === 4) {
+                    setTimeout(() => {
+                        this.open4PSetup();
+                        document.getElementById('joinCodeInput').value = code;
+                    }, 500);
+                }
+            }
+
+            toggleSound() {
+                this.sfx.enabled = !this.sfx.enabled;
+                const icon = document.getElementById('soundIcon');
+                icon.textContent = this.sfx.enabled ? "🔊" : "🔇";
+            }
+
+            showHome() {
+                clearInterval(this.timer);
+                if (this.roomUnsubscribe) {
+                    this.roomUnsubscribe();
+                    this.roomUnsubscribe = null;
+                }
+                this.startScreen.classList.remove('hidden');
+                this.roomSetupScreen.classList.add('hidden');
+                this.lobbyScreen.classList.add('hidden');
+                this.battleScreen.classList.add('hidden');
+                this.resultScreen.classList.add('hidden');
+            }
+
+            open4PSetup() {
+                this.startScreen.classList.add('hidden');
+                this.roomSetupScreen.classList.remove('hidden');
+            }
+
+            async create4PRoom() {
+                const hostName = document.getElementById('hostNameInput').value.trim() || '방장';
+                const code = Math.floor(1000 + Math.random() * 9000).toString();
+                this.roomCode = code;
+                this.isHost = true;
+                this.mode = '4p';
+
+                if (!window.firebaseCtx) {
+                    alert("네트워크 연결을 준비 중입니다. 잠시 후 다시 시도해 주세요.");
+                    return;
+                }
+
+                const { db, appId, getCurrentUser, doc, setDoc } = window.firebaseCtx;
+                const user = getCurrentUser();
+                const myUid = user ? user.uid : "host_" + Math.random().toString(36).substring(2, 6);
+
+                const roomDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', code);
+                
+                const initialRoomData = {
+                    code: code,
+                    status: 'lobby',
+                    hostUid: myUid,
+                    currentRound: 0,
+                    questionSeed: Math.floor(Math.random() * 1000),
+                    players: [
+                        { uid: myUid, name: hostName, avatar: "👑", hp: 100, score: 0, correctCount: 0, combo: 0, answered: false }
+                    ],
+                    updatedAt: Date.now()
+                };
+
+                try {
+                    await setDoc(roomDocRef, initialRoomData);
+                    this.myPlayerIndex = 0;
+                    this.showLobby(code);
+                    this.listenToRoom(code);
+                } catch (e) {
+                    console.error("Room creation error:", e);
+                    // Fallback local lobby mode if offline
+                    this.myPlayerIndex = 0;
+                    this.showLobby(code);
+                }
+            }
+
+            async join4PRoom() {
+                const joinName = document.getElementById('joinNameInput').value.trim() || '도전자';
+                const code = document.getElementById('joinCodeInput').value.trim();
+
+                if (code.length !== 4) {
+                    alert("4자리 방 코드를 올바르게 입력해주세요!");
+                    return;
+                }
+
+                if (!window.firebaseCtx) {
+                    alert("네트워크 연결을 준비 중입니다. 잠시 후 다시 시도해 주세요.");
+                    return;
+                }
+
+                this.roomCode = code;
+                this.isHost = false;
+                this.mode = '4p';
+
+                const { db, appId, getCurrentUser, doc, getDoc, updateDoc } = window.firebaseCtx;
+                const user = getCurrentUser();
+                const myUid = user ? user.uid : "p_" + Math.random().toString(36).substring(2, 6);
+
+                const roomDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', code);
+
+                try {
+                    const snap = await getDoc(roomDocRef);
+                    if (!snap.exists()) {
+                        alert("존재하지 않는 방 코드입니다!");
+                        return;
+                    }
+                    const data = snap.data();
+                    if (data.status !== 'lobby') {
+                        alert("이미 대결이 시작된 방입니다!");
+                        return;
+                    }
+                    if (data.players.length >= 4) {
+                        alert("방의 정원(4명)이 가득 찼습니다!");
+                        return;
+                    }
+
+                    const avatars = ["🦊", "🐻", "🐰", "🐯"];
+                    const myAvatar = avatars[data.players.length % avatars.length];
+
+                    // Add player if not exists
+                    let pList = data.players || [];
+                    const existingIdx = pList.findIndex(p => p.uid === myUid);
+                    if (existingIdx === -1) {
+                        pList.push({ uid: myUid, name: joinName, avatar: myAvatar, hp: 100, score: 0, correctCount: 0, combo: 0, answered: false });
+                        await updateDoc(roomDocRef, { players: pList, updatedAt: Date.now() });
+                        this.myPlayerIndex = pList.length - 1;
+                    } else {
+                        this.myPlayerIndex = existingIdx;
+                    }
+
+                    this.showLobby(code);
+                    this.listenToRoom(code);
+                } catch (e) {
+                    console.error("Room join error:", e);
+                    alert("방 접속에 실패했습니다. 다시 시도해주세요.");
+                }
+            }
+
+            showLobby(code) {
+                this.roomSetupScreen.classList.add('hidden');
+                this.lobbyScreen.classList.remove('hidden');
+
+                document.getElementById('lobbyCodeDisplay').textContent = code;
+
+                // Generate QR Code URL pointing to current page with ?room=code
+                const currentUrl = window.location.origin + window.location.pathname + `?room=${code}`;
+                const qrContainer = document.getElementById('qrcode');
+                qrContainer.innerHTML = '';
+                new QRCode(qrContainer, {
+                    text: currentUrl,
+                    width: 150,
+                    height: 150,
+                    colorDark: "#1e1b4b",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.M
+                });
+
+                document.getElementById('startGameHostBtn').style.display = this.isHost ? 'block' : 'none';
+            }
+
+            listenToRoom(code) {
+                const { db, appId, doc, onSnapshot } = window.firebaseCtx;
+                const roomDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', code);
+
+                this.roomUnsubscribe = onSnapshot(roomDocRef, (snap) => {
+                    if (!snap.exists()) return;
+                    const data = snap.data();
+                    
+                    this.players = data.players || [];
+                    document.getElementById('playerCountText').textContent = this.players.length;
+
+                    // Update Lobby list UI
+                    const lobbyListEl = document.getElementById('playerLobbyList');
+                    lobbyListEl.innerHTML = '';
+                    this.players.forEach((p, i) => {
+                        const div = document.createElement('div');
+                        div.className = "flex items-center justify-between bg-indigo-900/90 px-3 py-2 rounded-xl border border-indigo-700/50 text-xs";
+                        div.innerHTML = `
+                            <div class="flex items-center gap-2">
+                                <span class="text-xl">${p.avatar}</span>
+                                <span class="font-bold text-white">${p.name} ${i === 0 ? '👑(방장)' : ''}</span>
+                            </div>
+                            <span class="text-emerald-400 font-semibold">준비 완료</span>
+                        `;
+                        lobbyListEl.appendChild(div);
+                    });
+
+                    // Room Status transitions
+                    if (data.status === 'playing' && this.battleScreen.classList.contains('hidden')) {
+                        this.start4PBattleScreen(data);
+                    } else if (data.status === 'playing') {
+                        this.sync4PRoundState(data);
+                    } else if (data.status === 'result' && !this.battleScreen.classList.contains('hidden')) {
+                        this.endGame();
+                    }
+                }, (err) => console.warn("Snapshot listener:", err));
+            }
+
+            async start4PGameFromLobby() {
+                if (!this.isHost) return;
+                const { db, appId, doc, updateDoc } = window.firebaseCtx;
+                const roomDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', this.roomCode);
+
+                await updateDoc(roomDocRef, {
+                    status: 'playing',
+                    currentRound: 1,
+                    updatedAt: Date.now()
+                });
+            }
+
+            startBattle(selectedMode) {
+                this.mode = selectedMode;
+                this.sfx.init();
+
+                if (this.mode === '1p') {
+                    this.players = [
+                        { name: "플레이어 1", avatar: "🧑‍🎓", hp: 100, maxHp: 100, combo: 0, score: 0, correctCount: 0 },
+                        { name: "맞춤법 로봇", avatar: "🤖", hp: 100, maxHp: 100, combo: 0, score: 0, correctCount: 0 }
+                    ];
+                } else if (this.mode === '2p') {
+                    this.players = [
+                        { name: "플레이어 1", avatar: "🧑‍🎓", hp: 100, maxHp: 100, combo: 0, score: 0, correctCount: 0 },
+                        { name: "플레이어 2", avatar: "🧑‍🎤", hp: 100, maxHp: 100, combo: 0, score: 0, correctCount: 0 }
+                    ];
+                }
+
+                this.questionsPool = [...QUIZ_DATABASE].sort(() => Math.random() - 0.5);
+                this.currentRound = 0;
+                this.activeTurnPlayer = 1;
+
+                this.startScreen.classList.add('hidden');
+                this.roomSetupScreen.classList.add('hidden');
+                this.lobbyScreen.classList.add('hidden');
+                this.battleScreen.classList.remove('hidden');
+                this.battleScreen.classList.add('flex');
+
+                this.loadRound();
+            }
+
+            start4PBattleScreen(data) {
+                this.lobbyScreen.classList.add('hidden');
+                this.battleScreen.classList.remove('hidden');
+                this.battleScreen.classList.add('flex');
+
+                // Deterministic question pool based on seed
+                this.questionsPool = [...QUIZ_DATABASE];
+                this.currentRound = 0;
+                this.sync4PRoundState(data);
+            }
+
+            renderPlayerCardsUI() {
+                const grid = document.getElementById('playersGrid');
+                grid.innerHTML = '';
+
+                const bgColors = ["border-blue-500/50", "border-pink-500/50", "border-emerald-500/50", "border-amber-500/50"];
+
+                this.players.forEach((p, idx) => {
+                    const card = document.createElement('div');
+                    card.className = `flex flex-col items-center bg-indigo-900/60 p-2 rounded-xl border ${bgColors[idx % 4]}`;
+                    
+                    const hpPct = Math.max(0, p.hp);
+                    
+                    card.innerHTML = `
+                        <div class="flex items-center gap-1.5 w-full justify-between mb-1">
+                            <span class="text-xl">${p.avatar}</span>
+                            <div class="text-right">
+                                <div class="font-jua text-xs text-yellow-300 leading-none truncate max-w-[70px]">${p.name}</div>
+                                <span class="text-[9px] text-indigo-300">점수: ${p.score || 0}</span>
+                            </div>
+                        </div>
+                        <div class="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden p-0.5 border border-slate-700">
+                            <div class="hp-bar-fill bg-emerald-400 h-full rounded-full" style="width: ${hpPct}%"></div>
+                        </div>
+                        <div class="text-[10px] text-emerald-300 font-bold mt-0.5">${p.hp} HP</div>
+                    `;
+                    grid.appendChild(card);
+                });
+            }
+
+            loadRound() {
+                if (this.currentRound >= this.maxRounds || (this.mode !== '4p' && (this.players[0].hp <= 0 || this.players[1].hp <= 0))) {
+                    this.endGame();
+                    return;
+                }
+
+                this.currentRound++;
+                this.isAnswering = true;
+                this.explanationBox.classList.add('hidden');
+
+                this.renderPlayerCardsUI();
+
+                // Pick current question
+                this.currentQuestion = this.questionsPool[(this.currentRound - 1) % this.questionsPool.length];
+
+                document.getElementById('stageProgress').textContent = `라운드 ${this.currentRound} / ${this.maxRounds}`;
+                
+                if (this.mode === '4p') {
+                    document.getElementById('turnBadge').textContent = `👉 4인 서바이벌 라운드`;
+                } else {
+                    const activeP = this.players[this.activeTurnPlayer - 1];
+                    document.getElementById('turnBadge').textContent = `👉 ${activeP.name}의 공격 차례!`;
+                }
+
+                document.getElementById('questionCategory').textContent = this.currentQuestion.category;
+                document.getElementById('questionText').textContent = this.currentQuestion.sentence;
+
+                const container = document.getElementById('optionsContainer');
+                container.innerHTML = '';
+
+                const opts = this.currentQuestion.options.map((text, idx) => ({ text, isCorrect: idx === this.currentQuestion.answer }));
+
+                opts.forEach((opt) => {
+                    const btn = document.createElement('button');
+                    btn.className = "w-full bg-indigo-800/90 hover:bg-indigo-600 border-2 border-indigo-500/50 text-white font-jua text-lg sm:text-xl py-3 px-4 rounded-2xl shadow-lg transition transform active:scale-95 flex items-center justify-center gap-2";
+                    btn.textContent = opt.text;
+                    btn.onclick = () => this.submitAnswer(opt.isCorrect, btn);
+                    container.appendChild(btn);
+                });
+
+                this.startTimer();
+            }
+
+            sync4PRoundState(data) {
+                if (data.currentRound !== this.currentRound) {
+                    this.currentRound = data.currentRound;
+                    this.loadRound();
+                } else {
+                    this.renderPlayerCardsUI();
+                }
+            }
+
+            startTimer() {
+                clearInterval(this.timer);
+                this.timeLeft = 10;
+                const timerBar = document.getElementById('timerBar');
+                timerBar.style.width = '100%';
+                timerBar.className = "bg-yellow-400 h-full w-full transition-all duration-100 linear";
+
+                const stepTime = 100;
+                const totalSteps = (this.timeLeft * 1000) / stepTime;
+                let step = 0;
+
+                this.timer = setInterval(() => {
+                    step++;
+                    const percent = Math.max(0, 100 - (step / totalSteps) * 100);
+                    timerBar.style.width = percent + '%';
+
+                    if (percent < 30) {
+                        timerBar.className = "bg-rose-500 h-full w-full transition-all duration-100 linear";
+                    }
+
+                    if (step >= totalSteps) {
+                        clearInterval(this.timer);
+                        this.handleTimeout();
+                    }
+                }, stepTime);
+            }
+
+            handleTimeout() {
+                if (!this.isAnswering) return;
+                this.submitAnswer(false, null, true);
+            }
+
+            async submitAnswer(isCorrect, clickedBtn = null, isTimeout = false) {
+                if (!this.isAnswering) return;
+                this.isAnswering = false;
+                clearInterval(this.timer);
+
+                const optionBtns = document.querySelectorAll('#optionsContainer button');
+                optionBtns.forEach(btn => btn.disabled = true);
+
+                if (this.mode === '4p') {
+                    // Update my score in 4P mode
+                    const myPlayer = this.players[this.myPlayerIndex];
+                    if (isCorrect) {
+                        this.sfx.playCorrect();
+                        myPlayer.score += 20;
+                        myPlayer.correctCount++;
+                        if (clickedBtn) {
+                            clickedBtn.classList.add('bg-emerald-600', 'border-emerald-300', 'ring-4', 'ring-emerald-400');
+                        }
+                    } else {
+                        this.sfx.playWrong();
+                        myPlayer.hp = Math.max(0, myPlayer.hp - 15);
+                        if (clickedBtn) {
+                            clickedBtn.classList.add('bg-rose-600', 'border-rose-400');
+                        }
+                    }
+
+                    // Sync state to cloud
+                    if (this.roomCode) {
+                        const { db, appId, doc, updateDoc } = window.firebaseCtx;
+                        const roomDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', this.roomCode);
+                        await updateDoc(roomDocRef, { players: this.players, updatedAt: Date.now() });
+                    }
+
+                    this.showExplanation(isCorrect, isCorrect ? "+20점 획득!" : "-15 HP 피해", isTimeout);
+
+                } else {
+                    // 1P or 2P Local mode
+                    const attacker = this.players[this.activeTurnPlayer - 1];
+                    const defender = this.players[this.activeTurnPlayer === 1 ? 1 : 0];
+
+                    if (isCorrect) {
+                        this.sfx.playCorrect();
+                        attacker.combo++;
+                        attacker.correctCount++;
+                        attacker.score += 20;
+                        const damage = 15 + (attacker.combo * 5);
+                        defender.hp = Math.max(0, defender.hp - damage);
+
+                        if (clickedBtn) {
+                            clickedBtn.classList.add('bg-emerald-600', 'border-emerald-300');
+                        }
+                        this.showExplanation(true, `${attacker.name}의 강한 공격! ${damage} 데미지!`, isTimeout);
+                    } else {
+                        this.sfx.playWrong();
+                        attacker.combo = 0;
+                        attacker.hp = Math.max(0, attacker.hp - 10);
+
+                        if (clickedBtn) {
+                            clickedBtn.classList.add('bg-rose-600', 'border-rose-400', 'animate-shake');
+                        }
+                        this.showExplanation(false, isTimeout ? "⏰ 시간초과! (-10 HP)" : "공격 실패! (-10 HP)", isTimeout);
+                    }
+                    this.renderPlayerCardsUI();
+                }
+            }
+
+            showExplanation(isCorrect, subTitle, isTimeout) {
+                const box = this.explanationBox;
+                const titleEl = document.getElementById('resultTitle');
+                const textEl = document.getElementById('resultText');
+                const tipEl = document.getElementById('tipBox');
+                const iconEl = document.getElementById('resultIcon');
+
+                box.classList.remove('hidden');
+
+                if (isCorrect) {
+                    box.className = "bg-emerald-950/95 border-2 border-emerald-500 rounded-2xl p-4 sm:p-5 shadow-2xl transition mt-3";
+                    iconEl.textContent = "⚔️";
+                    titleEl.textContent = `정답입니다! ${subTitle}`;
+                    titleEl.className = "font-jua text-base sm:text-lg text-emerald-300 mb-1";
+                } else {
+                    box.className = "bg-rose-950/95 border-2 border-rose-500 rounded-2xl p-4 sm:p-5 shadow-2xl transition mt-3 animate-shake";
+                    iconEl.textContent = "💥";
+                    titleEl.textContent = `오답입니다! ${subTitle}`;
+                    titleEl.className = "font-jua text-base sm:text-lg text-rose-300 mb-1";
+                }
+
+                textEl.textContent = this.currentQuestion.explanation;
+                tipEl.textContent = this.currentQuestion.tip;
+            }
+
+            async nextTurn() {
+                if (this.mode === '4p') {
+                    if (this.isHost) {
+                        const { db, appId, doc, updateDoc } = window.firebaseCtx;
+                        const roomDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', this.roomCode);
+                        if (this.currentRound >= this.maxRounds) {
+                            await updateDoc(roomDocRef, { status: 'result', updatedAt: Date.now() });
+                        } else {
+                            await updateDoc(roomDocRef, { currentRound: this.currentRound + 1, updatedAt: Date.now() });
+                        }
+                    } else {
+                        this.loadRound();
+                    }
+                } else {
+                    if (this.mode === '2p') {
+                        this.activeTurnPlayer = this.activeTurnPlayer === 1 ? 2 : 1;
+                    }
+                    this.loadRound();
+                }
+            }
+
+            endGame() {
+                clearInterval(this.timer);
+                this.battleScreen.classList.add('hidden');
+                this.resultScreen.classList.remove('hidden');
+
+                // Sort players by remaining HP and Score
+                const sorted = [...this.players].sort((a, b) => (b.hp + b.score) - (a.hp + a.score));
+                const winner = sorted[0];
+
+                document.getElementById('winnerText').textContent = `${winner.name} 최종 우승! 🎉`;
+                document.getElementById('winnerSubtext').textContent = `6학년 맞춤법 대결에서 가장 뛰어난 실력을 보여주었습니다!`;
+
+                // Leaderboard render
+                const listEl = document.getElementById('leaderboardList');
+                listEl.innerHTML = '';
+                sorted.forEach((p, rank) => {
+                    const row = document.createElement('div');
+                    row.className = "flex items-center justify-between bg-indigo-900/90 p-2.5 rounded-xl border border-indigo-700/60 text-xs sm:text-sm";
+                    row.innerHTML = `
+                        <div class="flex items-center gap-2">
+                            <span class="font-jua text-yellow-300 text-base">#${rank + 1}</span>
+                            <span class="text-xl">${p.avatar}</span>
+                            <span class="font-bold text-white">${p.name}</span>
+                        </div>
+                        <div class="text-right font-mono">
+                            <span class="text-emerald-400 font-bold">${p.hp} HP</span>
+                            <span class="text-indigo-300 text-[10px] ml-2">(${p.score}점)</span>
+                        </div>
+                    `;
+                    listEl.appendChild(row);
+                });
+
+                // Award Badge
+                const badgeTitle = document.getElementById('badgeTitle');
+                const badgeDesc = document.getElementById('badgeDesc');
+
+                if (winner.score >= 120) {
+                    badgeTitle.textContent = "6학년 맞춤법 종결자";
+                    badgeDesc.textContent = "모든 헷갈리는 맞춤법을 정확하게 정복한 대마왕!";
+                } else {
+                    badgeTitle.textContent = "한글의 수호자";
+                    badgeDesc.textContent = "차분한 추리력으로 바른 한글 표기를 지켜냈습니다!";
+                }
+            }
+
+            restartGame() {
+                if (this.mode === '4p') {
+                    this.open4PSetup();
+                } else {
+                    this.startBattle(this.mode);
+                }
+            }
+
+            leaveRoom() {
+                this.showHome();
+            }
+        }
+
+        // Initialize Game
+        let game;
+        window.onload = () => {
+            game = new GameEngine();
+        };
+    </script>
+</body>
+</html>
